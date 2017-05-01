@@ -1,0 +1,532 @@
+/*
+Second attempt at getting a working LARP jacket.
+Uses an accelerometer to get the measure what position one of the cuffs is in.
+If the position is close enough to the "cast position" it makes noises and lights
+do magicy things.  Each "spell" has 3 steps in them and there's 3 spells to cast.
+
+So yeah.
+
+spell 1 is fireball/blast/project/whatever.
+sound was downloaded from here,
+https://www.freesound.org/people/tc630/sounds/47835/
+
+spell 2 is ice-something-or-other.
+first two sounds are from here,
+https://www.freesound.org/people/j_p_higgins/sounds/262634/
+last sound is this,
+https://www.freesound.org/people/ecfike/sounds/177224/
+
+spell 3 is eldrich spooky spell.
+first two sounds are from here,
+https://www.freesound.org/people/nicStage/sounds/1526/
+and the final sound is this,
+https://www.freesound.org/people/jameswrowles/sounds/248252/
+
+++Version history++
+v1.0-first attempt.  hidden in a google doc folder somewhere.
+v2.0-this version.  still need to work out the kinks.
+*/
+
+
+#include <Wire.h>
+#include <Adafruit_LSM303.h>
+#include <Adafruit_NeoPixel.h>
+#include <SoftwareSerial.h>
+#include "Adafruit_Soundboard.h"
+//libraries to make the bits work.
+
+#define PIN 8
+//pin used for neopixels.
+#define NUMPIXELS 9
+//total number of neopixels being used.
+
+#define SFX_TX 5
+#define SFX_RX 6
+#define SFX_RST 4
+//pins used to send, receive, and reset serial data from the soundboard.
+
+Adafruit_LSM303 lsm;
+//initialize the accelerometer.
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+//initialize the neopixels.
+SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX);
+Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SFX_RST);
+//initialize the serial output to the soundboard.
+
+int spell1 [9]= {125, 125, 875, -125, 125, -875, 125, 125, 875};
+//fire ball/storm/blast spell.
+//moves are:
+//1. hands out in front of you sensor up.
+//2. reverse it and put the sensor side down.
+//3. reverse the reverse and sensor side goes down.
+int spell2 [9]= {625, -875, 125, -625, 625, -325, 875, 625, 375};
+//ice blast/storm/projectile.
+//moves are:
+//1. arms down at your sides, sensor points away from you.
+//2. raise your arms to the sky, sensor still points away from you.
+//3. point arms at your target, sensor points away from you still.
+int spell3 [9]= {-625, 625, -325, -625, 625, -325, -625, 625, -325};
+//mindflay/eldrich beam/spooky purple flashing lights.
+//moves are:
+//1. fingers on temples and make a stupid "i'm psychic" face/noise.
+//2. hold it and try not to feel stupid.
+//3. hold it even though you feel stupid.
+
+//variables that are for the 3 spells 3 steps location.
+//the numbers are in three number groups representing x, y, then z.
+
+#define testThreshold 125
+//how close the accelerometer needs to be to the spell point to "cast" it.
+
+int hold [3];
+//variable to hold temporary values.
+int spell = 0;
+int stage = 0;
+//variables to "remember" what step the casting is on.
+
+void setup() {
+  Serial.begin(115200);
+  //initializes the serial input and output.
+  //serial needs to be fast for the soundboard.
+
+  ss.begin(9600);
+  //sets up the serial interface to the soundboard.
+  // softwareserial at 9600 baud
+
+  pixels.begin();
+  //starts up the neopixels.
+
+  lsm.begin();
+  //starts up the accelerometer.
+  
+  randomSeed(analogRead(0));
+}
+
+void loop() {
+  Serial.println("start");
+  lsm.read();
+  int x = lsm.accelData.x;
+  int y = lsm.accelData.y;
+  int z = lsm.accelData.z;
+  //reads the current orientation of the accelerometer and writes the locations to x, y, and z variables.
+
+  Serial.print("x= "); Serial.print(x); Serial.print(", ");
+  Serial.print("y= "); Serial.print(y); Serial.print(", ");
+  Serial.print("z= "); Serial.print(z); Serial.println(); 
+  
+  if(stage == 0){
+    Serial.println("first sort");
+    distance(spell1[0], x, 0);
+    distance(spell1[1], y, 0);
+    distance(spell1[2], z, 0);
+    distance(spell2[0], x, 1);
+    distance(spell2[1], y, 1);
+    distance(spell2[2], z, 1);
+    distance(spell3[0], x, 2);
+    distance(spell3[1], y, 2);
+    distance(spell3[2], z, 2);
+    //runs all the first spell points vs the current location to calculate the distance.
+    initialSort();
+  }
+
+  else{
+    Serial.println("not first sort");
+    sort(x, y, z);
+  }
+  
+  off();
+  Serial.println("the end.");
+  Serial.println();
+  delay(1000);
+}
+
+void distance(int n, int m, int h){
+  Serial.println("distance");
+  //calculates the distance between the two coordinates, then puts the value in the placeholder array.
+  int p = n - m;
+  if(p < 1){
+    p = p * -1;
+  }
+
+  hold [h] = hold [h] + p;
+}
+
+void test(int t, int l, int c){
+  Serial.println("test");
+  //tests to see if the distance between the spell point and current point is under the threshold.
+  if(t < testThreshold){
+    Serial.println("close enough");
+    spell = l;
+    ++stage;
+    cast(c);
+  }
+  
+  hold [0] = 0;
+  hold [1] = 0;
+  hold [2] = 0;
+  //clear the place holders for the next step.
+}
+
+void initialSort(){
+  Serial.println("first sort");
+  //sorts out which spell is being cast based on how close it is to the first point.
+  if(hold [0] < hold [1]){
+    if(hold [0] < hold [2]){
+      Serial.println("test step 1, spell 1");
+      test(hold [0], 1, 1);      
+    }
+  }
+
+  else if(hold[1] < hold[2]){
+    Serial.println("test step 1, spell 2");
+    test(hold [1], 2, 4);    
+  }
+
+  else{
+    Serial.println("test step 1, spell 3");
+    test(hold [2], 3, 7);
+  }
+}
+
+void sort(int x, int y, int z){
+  Serial.println("not first sort");
+  //sorts out the rest (not first) spell points.
+  switch(spell){
+    case 1:
+    if(stage == 1){
+      distance(spell1[3], x, 0);
+      distance(spell1[4], y, 1);
+      distance(spell1[5], z, 2);
+      hold [0] = hold [0] + hold [1] + hold [2];
+      Serial.println("test step 2, spell 1");
+      test(hold [0], 1, 2);
+    }
+
+    else if(stage == 2){
+      distance(spell1[6], x, 0);
+      distance(spell1[7], y, 1);
+      distance(spell1[8], z, 2);
+      hold [0] = hold [0] + hold [1] + hold [2];
+      Serial.println("test step 3, spell 1");
+      test(hold [0], 1, 3);
+    }
+
+    else{
+      stage = 0;
+      spell = 0;
+      Serial.println("reset to beginning");
+    }
+    break;
+
+    case 2:
+    if(stage == 1){
+      distance(spell2[3], x, 0);
+      distance(spell2[4], y, 1);
+      distance(spell2[5], z, 2);
+      hold [0] = hold [0] + hold [1] + hold [2];
+      Serial.println("test step 2, spell 2");
+      test(hold [0], 2, 5);
+    }
+
+    else if(stage == 2){
+      distance(spell2[6], x, 0);
+      distance(spell2[7], y, 1);
+      distance(spell2[8], z, 2);
+      hold [0] = hold [0] + hold [1] + hold [2];
+      Serial.println("test step 3, spell 2");
+      test(hold [0], 2, 6);
+    }
+
+    else{
+      stage = 0;
+      spell = 0;
+      Serial.println("reset to beginning");
+    }
+    break;
+
+    case 3:
+    if(stage == 1){
+      distance(spell3[3], x, 0);
+      distance(spell3[4], y, 1);
+      distance(spell3[5], z, 2);
+      hold [0] = hold [0] + hold [1] + hold [2];
+      Serial.println("test step 2, spell 3");
+      test(hold [0], 3, 8);
+    }
+
+    else if(stage == 2){
+      distance(spell3[6], x, 0);
+      distance(spell3[7], y, 1);
+      distance(spell3[8], z, 2);
+      hold [0] = hold [0] + hold [1] + hold [2];
+      Serial.println("test step 3, spell 3");
+      test(hold [0], 3, 9);
+    }
+
+    else{
+      stage = 0;
+      spell = 0;
+      Serial.println("reset to beginning");
+    }
+    break;
+  }
+}
+
+void cast(int c){
+  int a = 0;
+  Serial.println("casting ");
+  //doing stuff to "cast" the spells.
+  switch(c){
+    case 1:
+    Serial.println("step 1, spell 1!");
+    //case for the first stage of the first spell.
+    sfx.playTrack(1);
+    //play track 1 on the sound board.
+    
+    for(int x = 0; x < 33; x++){
+      for(int y = 0; y < 9; y++){
+        fire(y);
+      }
+      delay(10);
+    }
+    
+     break;
+
+     case 2:
+     Serial.println("step 2, spell 1!");
+     //case for the second stage of the first spell.
+     sfx.playTrack(2);
+
+     for(int x = 0; x < 33; x++){
+       for(int y = 0; y < 9; y++){
+        fire(y);
+      }
+      delay(10);
+    }
+
+     break;
+
+     case 3:
+     Serial.println("step 3, spell 1!");
+     //final stage of spell 1.    
+     sfx.playTrack(3);
+
+     for(int x = 0; x < 33; x++){
+      for(int y = 0; y < 9; y++){
+        fire(y);
+      }
+      delay(10);
+    }
+
+     break;
+
+     case 4:
+     Serial.println("step 1, spell 2!");
+     //first stage of spell 2.
+     sfx.playTrack(4);
+
+     for(int x = 171; x > 115; x = x - 2){
+       if(x > 116){
+         for(int y = 0; y < 8; y++){
+           pixels.setPixelColor(y, x, x, 200);
+          }
+         pixels.show();
+         delay(50);
+       }
+
+       else{
+         for(int y = 0; y < 8; y++){
+           pixels.setPixelColor(y, 116, 116, 200);
+          }
+         pixels.show();
+       }
+     }
+
+     break;
+
+     case 5:
+     Serial.println("stage 2, spell 2!");
+     //second stage of spell 2.
+     sfx.playTrack(5);
+
+     for(int x = 114; x > 58 ; x = x - 2){
+      if(x > 59){
+        for(int y = 0; y < 8; y++){
+          pixels.setPixelColor(y, x, x, 255);
+        }
+       pixels.show();
+       delay(50);
+     }
+
+     else{
+       for(int y = 0; y < 8; y++){
+         pixels.setPixelColor(y, 59, 59, 255);
+        }       
+        pixels.show();
+       }
+     }
+
+     break;
+
+     case 6:
+     Serial.println("stage 3, spell 2!");
+     //last stage of spell 2.
+     sfx.playTrack(6);
+
+     for(int x = 57; x > 0; x = x - 2){
+       if(x > 2){
+         for(int y = 0; y < 8; y++){
+           pixels.setPixelColor(y, x, x, 255);
+          }         
+          pixels.show();
+          delay(50);
+       }
+
+       else{
+         for(int y = 0; y < 8; y++){
+           pixels.setPixelColor(y, 0, 0, 255);
+          }
+         pixels.show();
+       }
+     }     
+
+     break;
+
+     case 7:
+     Serial.println("stage 1, spell 3!");
+     //first stage of spell 3.
+     sfx.playTrack(7);
+
+     for(int x = 0; x < 10; x++){
+       for(int y = 0; y < 9; y++){
+         if(a == 0){
+           pixels.setPixelColor(y, 125, 0, 200);
+           a = 1;
+         }
+         
+         else{
+           pixels.setPixelColor(y, 0, 0, 0);
+           a = 0;
+         }
+       }
+       
+       pixels.show();
+       delay(125);
+       
+       for(int y = 0; y < 9; y++){
+         if(a == 1){
+             pixels.setPixelColor(y, 125, 0, 200);
+             a = 0;
+           }
+           
+           else{
+             pixels.setPixelColor(y, 0, 0, 0);
+             a = 1;
+           }
+         }
+         
+         pixels.show();
+         delay(125);
+       }
+        
+     break;
+
+     case 8:
+     Serial.println("stage 2, spell 3!");
+     //second stage of spell 3.
+     sfx.playTrack(7);
+
+     for(int x = 0; x < 10; x++){
+       for(int y = 0; y < 9; y++){
+         if(a = 0){
+           pixels.setPixelColor(y, 125, 0, 200);
+           a = 1;
+         }
+         
+         else{
+           pixels.setPixelColor(y, 0, 0, 0);
+           a = 0;
+         }
+       }
+       
+       pixels.show();
+       delay(100);
+       
+       for(int y = 0; y < 9; y++){
+         if(a == 1){
+             pixels.setPixelColor(y, 125, 0, 200);
+             a = 0;
+           }
+           
+           else{
+             pixels.setPixelColor(y, 0, 0, 0);
+             a = 1;
+           }
+         }
+         
+         pixels.show();
+         delay(100);
+       }
+        
+     break;
+
+     case 9:
+     Serial.println("stage 3, spell 3!");
+     //final stage of spell 3.
+     sfx.playTrack(7);
+
+     for(int x = 0; x < 10; x++){
+       for(int y = 0; y < 9; y++){
+         if(a == 0){
+           pixels.setPixelColor(y, 125, 0, 200);
+           a = 1;
+         }
+         
+         else{
+           pixels.setPixelColor(y, 0, 0, 0);
+           a = 0;
+         }
+       }
+       
+       pixels.show();
+       delay(75);
+       
+       for(int y = 0; y < 9; y++){
+         if(a == 1){
+             pixels.setPixelColor(y, 125, 0, 200);
+             a = 1;
+           }
+           
+           else{
+             pixels.setPixelColor(y, 0, 0, 0);
+             a = 0;
+           }
+         }
+         
+         pixels.show();
+         delay(75);
+       }
+        
+     break;
+  }
+}
+
+void fire(int n){
+  for(int x = 0; x < 125; x++){
+    int g = random(125);  
+    hold [0] = random(3);
+      
+    if(hold [0] == 1){
+      pixels.setPixelColor(n, 200, g, 0);
+      pixels.show();
+    }
+  }
+}
+
+void off(){
+  for(int x = 0; x < 9; x++){
+    pixels.setPixelColor(x, 0, 0, 0);
+    pixels.show();
+  }
+  Serial.println("darkness");
+}
