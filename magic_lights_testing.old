@@ -1,0 +1,191 @@
+/*
+Testing sketch for the LARP jacket.  Also serves as a way to get the coordinates of the
+spell casting moves.
+
+Uses the accelerometer for the position and the LED's to show the values.  
+Right arm shows the x value of the accelerometer.
+Left arm shows the y value of the accelerometer.
+The hood shows the z value of the accelerometer.
+
+The values go from black to white.
+black-  -875
+red-    -625
+yellow- -325
+green-  -125
+cyan-   125
+blue    375
+magenta-625
+white-  875
+
+Based on the color that shows you'll get your x, y, and z coordinates for the orientation of the 
+accelerometer.  Put that into the array for the spell in the spell sketch.
+*/
+
+
+#include <Wire.h>
+#include <Adafruit_LSM303.h>
+#include <Adafruit_NeoPixel.h>
+#include <SoftwareSerial.h>
+#include "Adafruit_Soundboard.h"
+//libraries to make the bits work.
+
+#define PIN 8
+//pin used for neopixels.
+#define NUMPIXELS 9
+//total number of neopixels being used.
+
+#define SFX_TX 5
+#define SFX_RX 6
+#define SFX_RST 4
+//pins used to send, receive, and reset serial data from the soundboard.
+
+Adafruit_LSM303 lsm;
+//initialize the accelerometer.
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+//initialize the neopixels.
+SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX);
+Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SFX_RST);
+//initialize the serial output to the soundboard.
+
+int r;
+int g;
+int b;
+
+void setup() {
+  Serial.begin(115200);
+  //initializes the serial input and output.
+  //serial needs to be fast for the soundboard.
+
+  ss.begin(9600);
+  //sets up the serial interface to the soundboard.
+  // softwareserial at 9600 baud
+
+  pixels.begin();
+  //starts up the neopixels.
+
+  lsm.begin();
+  //starts up the accelerometer.
+  
+  randomSeed(analogRead(0));
+}
+
+void loop() {
+  Serial.println("start");
+  lsm.read();
+  int x = lsm.accelData.x;
+  int y = lsm.accelData.y;
+  int z = lsm.accelData.z;
+  //reads the current orientation of the accelerometer and writes the locations to x, y, and z variables.
+
+  Serial.print("x= "); Serial.print(x); Serial.print(", ");
+  Serial.print("y= "); Serial.print(y); Serial.print(", ");
+  Serial.print("z= "); Serial.print(z); Serial.println(); 
+
+  Serial.print("x is ");
+  colorShow(x, 1);
+  Serial.print("y is ");
+  colorShow(y, 2);
+  Serial.print("z is ");
+  colorShow(z, 3);
+  Serial.println("end");
+}
+
+void colorShow(int n, int pixel){
+  if(n < - 875){
+    Serial.println("black");
+    //black.
+    r = 0;
+    g = 0;
+    b = 0;
+    choosePixel(pixel);
+  }
+
+  else if(n < -625){
+    Serial.println("red");
+    //red.
+    r = 255;
+    g = 0;
+    b = 0;
+    choosePixel(pixel);
+  }
+
+  else if(n < -325){
+    Serial.println("yellow");
+    //yellow.
+    r = 255;
+    g = 255;
+    b = 0;
+    choosePixel(pixel);
+  }
+
+  else if(n < -125){
+    Serial.println("green");
+    //green.
+    r = 0;
+    g = 255;
+    b = 0;
+    choosePixel(pixel);
+  }
+
+  else if(n < 125){
+    Serial.println("cyan");
+    //cyan.
+    r = 0;
+    g = 255;
+    b = 255;
+    choosePixel(pixel);
+  }
+
+  else if(n < 375){
+    Serial.println("blue");
+    //blue.
+    r = 0;
+    g = 0;
+    b = 255;
+    choosePixel(pixel);
+  }
+
+  else if(n < 625){
+    Serial.println("purple");
+    //purple.
+    r = 255;
+    g = 0;
+    b = 255;
+    choosePixel(pixel);
+  }
+
+  else{
+    Serial.println("white");
+    //white.
+    r = 255;
+    g = 255;
+    b = 255;
+    choosePixel(pixel);
+  }
+}
+
+void choosePixel(int pixel){
+  if(pixel == 1){
+    //run through for X (the right arm).
+    pixels.setPixelColor(0, r, g, b);
+    pixels.setPixelColor(1, r, g, b);
+    pixels.setPixelColor(2, r, g, b);
+    pixels.show();
+  }
+
+  else if(pixel == 2){
+    //run through for Y (the left arm).
+    pixels.setPixelColor(3, r, g, b);
+    pixels.setPixelColor(4, r, g, b);
+    pixels.setPixelColor(5, r, g, b);
+    pixels.show();
+  }
+
+  else{
+    //run through for z (the hood).
+    pixels.setPixelColor(6, r, g, b);
+    pixels.setPixelColor(7, r, g, b);
+    pixels.setPixelColor(8, r, g, b);
+    pixels.show();
+  }
+}
