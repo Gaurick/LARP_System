@@ -1,0 +1,112 @@
+++Overview++
+Going to try to make a *magical* larp jacket.
+Microcontroller for the brains, accelerometer for the gestures, neopixels for the lights, 
+and a sound board for the lights.
+First tried with a DC barebones arduino.  Wasn't happy with the 9v option, so i opted to 
+try out the trinket pro.  Have the supplies, now i need to assemble them, then cobble the
+code together.
+
+++Supplies needed++
+https://www.adafruit.com/product/2000
+5v trinket pro.
+https://www.adafruit.com/products/1903
+PowerBoost 500
+https://www.adafruit.com/products/1781
+LiIon battery.
+https://www.adafruit.com/product/1559
+Neopixels.
+https://www.adafruit.com/products/2341
+Audio 16mb audio fx.
+https://www.adafruit.com/products/1552
+Stereo 2.8W amplifier.
+https://www.adafruit.com/products/1247
+Accelerometer.
+https://www.adafruit.com/products/805
+Switch.
+https://www.adafruit.com/products/1609
+Perma-proto half sized board.
+
+++Wiring++
+Trinket
+https://www.adafruit.com/products/2000
+(24 pins)
+A4-SDA on the accelerometer.
+A5-SCL on the accelerometer.
+
+BAT-BAT on trinket lipo backpack.
+G-(-) on the rails.
+BUS-(+) on the rails.
+8-neopixel first input (^ up arrow).
+6-RX on sound board.
+5-TX on sound board.
+4-Rst on sound board.
+
+Accelerometer
+https://www.adafruit.com/products/1247
+(4 wires)
+3V-(+) on the rails.
+SDA-A4 on the trinket pro.
+SCL-A5 on the trinket pro.
+gnd-(-) on the rails.
+
+Neopixel
+https://www.adafruit.com/products/1559
+(4 wires)
+(-)-(-) on the rails.
+^(incoming arrow)-8 on the trinket pro.
+(+)-(+) on the rails.
+^(outgoing arrow)-^ (incoming on the next neopixel).
+
+Sound board
+https://www.adafruit.com/products/2341
+(22 pins)
+Rst-4 on the trinket pro.
+
+Vin-(+) on the rails.
+Gnd-(-) on the rails.
+TX-5 on the trinket pro.
+RX-6 on the trinket pro.
+UG-(-) on the rails.
+R-R(+) on the amplifier.
+L-L(+) on the amplifier.
+
+Amplifier
+https://www.adafruit.com/products/1552
+(10 pins on 1 side)
+L(+)-L on the sound board.
+L(-)-(-) on the rails.
+R(-)-(-) on the rails.
+R(+)-(+) on the rails.
+GND-(-) on the rails.
+VDD-(+) on the rails.
+
+PowerBoost
+https://www.adafruit.com/products/1903
+(8 pins on 1 side)
+[need to look into using the pins...
+for now i'm using the spot you mount the USB plug with some wires...]
+USB (+)-(+) on the rails as well as BAT on trinket pro.
+USB (-)-(-) on the rails.
+
+++To Do++
+Pop it into some perf board.
+change test sketch to be useful to get values for the spell casting motions.
+get sounds for the spells.
+Refine code.
+comment some more (intro at the very least and clean this up...).
+Win.
+
+++Links used++
+As per usual much Adafruit lurking.
+
+https://learn.adafruit.com/introducing-pro-trinket/pinouts
+Trinket instructions.
+https://learn.adafruit.com/adafruit-pro-trinket-lipoly-slash-liion-backpack/pinouts
+LiPoly/LiIon backpack instructions.
+https://learn.adafruit.com/adafruit-audio-fx-sound-board/serial-audio-control
+Sound board instructions.
+https://learn.adafruit.com/lsm303-accelerometer-slash-compass-breakout/assembly-and-wiring
+Accelerometer instructions.
+https://learn.adafruit.com/adafruit-neopixel-uberguide/arduino-library
+Neopixel instructions.
+
