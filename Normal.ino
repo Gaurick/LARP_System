@@ -56,7 +56,7 @@ byte attack2skillElement = EEPROM.read(12);
 byte attack2effect = EEPROM.read(13);
 byte attack3skillElement = EEPROM.read(14);
 byte attack3effect = EEPROM.read(15);
-//variables for the 3 attacks ability, element, effect, and material used.
+//variables for the 3 attacks ability, element, effect used.
 
 byte deception = 0;
 byte persuasion = 0;
@@ -71,8 +71,23 @@ byte attackWait = 0;
 int counter = 0;
 //counter to count.  
 //used to not delay all the time, but pass time.
-byte textBuffer = 0;
+int holder = 0;
 //buffer variable to hold inputs for setting the character's stats.
+int serialCounter = 0;
+//variable to keep track of what step character stat set is at.
+
+char holding1 [20];
+char holding2 [17];
+char holding3 [14];
+char holding4 [11];
+char holding5 [10];
+char holding6 [9];
+char holding7 [8];
+char holding8 [7];
+char holding9 [6];
+char holding10 [5];
+char holding11 [4];
+//buffers for text to be sent over serial for the gmSet function.
 
 void setup(){
   Serial.begin(9600);
@@ -95,8 +110,8 @@ void setup(){
   pinMode(12, INPUT_PULLUP);
   //set button pins to be inputs and use the internal pullup resistors.
 
-  //Serial.println("If you can read this and want to adjust the character, please input the data.");
-  Serial.println("ready.");
+  Serial.print(EEPROM.get(36, holding1)); Serial.print(" "); Serial.println(EEPROM.get(70, holding2));
+  //send anything to change character
 }
 
 void loop(){
@@ -118,6 +133,7 @@ void loop(){
   }
 
   if(Serial.available() > 0){
+    holder = Serial.read();
     gmSet();
   }
 
@@ -341,20 +357,6 @@ void effects(){
   }
     
   show();
-  
-  /*Serial.print("soak="); Serial.print(soak);
-  Serial.print(" attack="); Serial.print(attack);
-  Serial.print(" damage="); Serial.print(damage);
-  Serial.print(" mitigate="); Serial.print(mitigate);
-  Serial.print(" deception="); Serial.print(deception);
-  Serial.print(" persuasion="); Serial.print(persuasion);
-  Serial.print(" dot="); Serial.print(dot);
-  Serial.print(" slow="); Serial.print(slow);
-  Serial.print(" blind="); Serial.print(blind);
-  Serial.print(" stun="); Serial.print(stun);
-  Serial.print(" enrage="); Serial.print(enrage);
-  Serial.print(" attackWait="); Serial.print(attackWait);
-  Serial.print(" count="); Serial.println(counter);*/
 }
 
 void sort(){
@@ -533,202 +535,520 @@ void sort(){
 }
 
 void gmSet(){
-  //not working currently.  taking offline until i have the patience to mess with it.
-  //use eeprom write sketch to directly write the stuff for now.
- /* //function to take serial inputs and offer to save them to eeprom if gm wants.
-  //might eventually find a way to make more effecient.
-  //or at least comment each step better...
-  switch (counter){
+    //Serial.println(holder);
+  switch (serialCounter){
     case 0:
-    soak = Serial.read() - 48;
-    counter ++;
+    serialCounter ++;
+    Serial.print(EEPROM.get(331, holding10)); Serial.println(EEPROM.get(150, holding6));
+    //soak? (0-9)
     break;
 
     case 1:
-    attack = Serial.read() - 48;
-    counter ++;
+    soak = holder - 48;
+    serialCounter ++;
+    Serial.println(soak);
+    Serial.print(EEPROM.get(207, holding8)); Serial.println(EEPROM.get(150, holding6));
+    //attack? (0-9)
     break;
 
     case 2:
-    damage = Serial.read() - 48;
-    counter ++;
+    attack = holder - 48;
+    serialCounter ++;
+    Serial.println(attack);
+    Serial.print(EEPROM.get(214, holding8)); Serial.println(EEPROM.get(150, holding6));
+    //damage? (0-9)
     break;
 
     case 3:
-    mitigate = Serial.read() - 48;
-    counter ++;
+    damage = holder - 48;
+    serialCounter ++;
+    Serial.println(damage);
+    Serial.print(EEPROM.get(159, holding6)); Serial.println(EEPROM.get(150, holding6));
+    //mitigate? (0-9)
     break;
 
     case 4:
-    textBuffer = Serial.read() - 48;
-    if(textBuffer == 1){
+    mitigate = holder - 48;
+    Serial.println(mitigate);
+    Serial.print(EEPROM.get(266, holding9)); Serial.print(" "); 
+    Serial.print(EEPROM.get(118, holding4)); Serial.print(" ");
+    Serial.println(EEPROM.get(16, holding1));
+    //light resistance 1 for yes, 0 for no
+    serialCounter ++;
+    break;
+
+    case 5:
+    if(holder == 49){
       light = 1;
     }
     else{
       light = 0;
     }
-    counter ++;
+    Serial.println(light);
+    Serial.print(EEPROM.get(301, holding10)); Serial.print(" "); 
+    Serial.print(EEPROM.get(118, holding4)); Serial.print(" ");
+    Serial.println(EEPROM.get(16, holding1));
+    //dark resistance 1 for yes, 0 for no
+    serialCounter ++;
     break;
 
-    case 5:
-    textBuffer = Serial.read() - 48;
-    if(textBuffer == 1){
+    case 6:
+    if(holder == 49){
       dark = 1;
     }
     else{
       dark = 0;
     }
-    counter ++;
+    Serial.println(dark);
+    Serial.print(EEPROM.get(306, holding10)); Serial.print(" "); 
+    Serial.print(EEPROM.get(118, holding4)); Serial.print(" ");
+    Serial.println(EEPROM.get(16, holding1));
+    //fire resistance 1 for yes, 0 for no
+    serialCounter ++;
     break;
 
-    case 6:
-    textBuffer = Serial.read() - 48;
-    if(textBuffer == 1){
+    case 7:
+    if(holder == 49){
       fire = 1;
     }
     else{
       fire = 0;
     }
-    counter ++;
+    Serial.println(fire);
+    Serial.print(EEPROM.get(272, holding9)); Serial.print(" "); 
+    Serial.print(EEPROM.get(118, holding4)); Serial.print(" ");
+    Serial.println(EEPROM.get(16, holding1));
+    //water resistance 1 for yes, 0 for no
+    serialCounter ++;
     break;
 
-    case 7:
-    textBuffer = Serial.read() - 48;
-    if(textBuffer == 1){
+    case 8:
+    if(holder == 49){
       water = 1;
     }
     else{
       water = 0;
     }
-    counter ++;
+    Serial.println(water);
+    Serial.print(EEPROM.get(278, holding9)); Serial.print(" "); 
+    Serial.print(EEPROM.get(118, holding4)); Serial.print(" ");
+    Serial.println(EEPROM.get(16, holding1));
+    //earth resistance 1 for yes, 0 for no
+    serialCounter ++;
     break;
 
-    case 8: 
-    textBuffer = Serial.read() - 48;
-    if(textBuffer == 1){
+    case 9:
+    if(holder == 49){
       earth = 1;
     }
     else{
       earth = 0;
     }
-    counter ++;
+    Serial.println(earth);
+    Serial.print(EEPROM.get(336, holding11)); Serial.print(" "); 
+    Serial.print(EEPROM.get(118, holding4)); Serial.print(" ");
+    Serial.println(EEPROM.get(16, holding1));
+    //air resistance 1 for yes 0 for no
+    serialCounter ++;
     break;
 
-    case 9:
-    textBuffer = Serial.read() - 48;
-    if(textBuffer == 1){
+    case 10:
+    if(holder == 49){
       air = 1;
     }
     else{
       air = 0;
     }
-    counter ++;
-    break;
-
-    case 10:
-    attack1skillElement = Serial.read() - 48;
-    counter ++;
+    Serial.println(air);
+    Serial.print(EEPROM.get(193, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(242, holding9)); Serial.print(" ");
+    Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");
+    Serial.println(EEPROM.get(87, holding2));
+    Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
+    Serial.print("1 "); Serial.println(EEPROM.get(235, holding8));
+    Serial.print("2 "); Serial.print(EEPROM.get(129, holding4)); Serial.print("\t");
+    Serial.print("3 "); Serial.println(EEPROM.get(140, holding5));
+    Serial.print("4 "); Serial.print(EEPROM.get(278, holding9)); Serial.print("\t \t");
+    Serial.print("5 "); Serial.println(EEPROM.get(336, holding11));
+    Serial.print("6 "); Serial.print(EEPROM.get(306, holding10)); Serial.print("\t \t");
+    Serial.print("7 "); Serial.println(EEPROM.get(272, holding9));
+    Serial.print("8 "); Serial.print(EEPROM.get(301, holding10)); Serial.print("\t \t");
+    Serial.print("9 "); Serial.println(EEPROM.get(266, holding9));
+    /*choose first attack skill or element
+    0 nothing     1 normal
+    2 persuasion  3 deception
+    4 earth       5 air
+    6 fire        7 water
+    8 dark        9 light*/
+    serialCounter ++;
     break;
 
     case 11:
-    attack1effect = Serial.read() - 48;
-    counter ++;
+    attack1skillElement = holder -48;
+    Serial.println(attack1skillElement);
+    Serial.print(EEPROM.get(193, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(242, holding9)); Serial.print(" "); 
+    Serial.println(EEPROM.get(228, holding8));
+    Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
+    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("2 "); Serial.print(EEPROM.get(311, holding10)); Serial.print("\t \t");
+    Serial.print("3 "); Serial.println(EEPROM.get(53, holding2));
+    Serial.print("4 "); Serial.print(EEPROM.get(316, holding10)); Serial.print("\t \t");
+    Serial.print("5 "); Serial.println(EEPROM.get(284, holding9));
+    Serial.print("6 "); Serial.print(EEPROM.get(321, holding10)); Serial.print("\t \t");
+    Serial.print("7 "); Serial.println(EEPROM.get(221, holding8));
+    Serial.print("8 "); Serial.print(EEPROM.get(168, holding6)); Serial.print("\t");
+    Serial.print("9 "); Serial.println(EEPROM.get(326, holding10)); 
+    /*choose first effect
+    0 nothing     1 fast
+    2 heal        3 damage over time
+    4 slow        5 blind
+    6 stun        7 enrage
+    8 accurate    9 cure*/
+    serialCounter ++;
     break;
 
     case 12:
-    attack2skillElement = Serial.read() - 48;
-    counter ++;
+    attack1effect = holder - 48;
+    Serial.println(attack1effect);
+    Serial.print(EEPROM.get(193, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(200, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");
+    Serial.println(EEPROM.get(87, holding2));
+    Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
+    Serial.print("1 "); Serial.println(EEPROM.get(235, holding8));
+    Serial.print("2 "); Serial.print(EEPROM.get(129, holding4)); Serial.print("\t");
+    Serial.print("3 "); Serial.println(EEPROM.get(140, holding5));
+    Serial.print("4 "); Serial.print(EEPROM.get(278, holding9)); Serial.print("\t \t");
+    Serial.print("5 "); Serial.println(EEPROM.get(336, holding11));
+    Serial.print("6 "); Serial.print(EEPROM.get(306, holding10)); Serial.print("\t \t");
+    Serial.print("7 "); Serial.println(EEPROM.get(272, holding9));
+    Serial.print("8 "); Serial.print(EEPROM.get(301, holding10)); Serial.print("\t \t");
+    Serial.print("9 "); Serial.println(EEPROM.get(266, holding9));
+    /*choose second attack skill or element
+    0 nothing     1 normal
+    2 persuasion  3 deception
+    4 earth       5 air
+    6 fire        7 water
+    8 dark        9 light*/
+    serialCounter ++;
     break;
 
     case 13:
-    attack2effect = Serial.read() - 48;
-    counter ++;
+    attack2skillElement = holder -48;
+    Serial.println(attack2skillElement);
+    Serial.print(EEPROM.get(193, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(200, holding8)); Serial.print(" "); 
+    Serial.println(EEPROM.get(228, holding8));
+    Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
+    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("2 "); Serial.print(EEPROM.get(311, holding10)); Serial.print("\t \t");
+    Serial.print("3 "); Serial.println(EEPROM.get(53, holding2));
+    Serial.print("4 "); Serial.print(EEPROM.get(316, holding10)); Serial.print("\t \t");
+    Serial.print("5 "); Serial.println(EEPROM.get(284, holding9));
+    Serial.print("6 "); Serial.print(EEPROM.get(321, holding10)); Serial.print("\t \t");
+    Serial.print("7 "); Serial.println(EEPROM.get(221, holding8));
+    Serial.print("8 "); Serial.print(EEPROM.get(168, holding6)); Serial.print("\t");
+    Serial.print("9 "); Serial.println(EEPROM.get(326, holding10)); 
+    /*choose second effect
+    0 nothing     1 fast
+    2 heal        3 damage over time
+    4 slow        5 blind
+    6 stun        7 enrage
+    8 accurate    9 cure*/
+    serialCounter ++;
     break;
 
     case 14:
-    attack3skillElement = Serial.read() - 48;
-    counter ++;
+    attack2effect = holder -48;
+    Serial.println(attack2effect);
+    Serial.print(EEPROM.get(193, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(248, holding9)); Serial.print(" ");
+    Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");
+    Serial.println(EEPROM.get(87, holding2));
+    Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
+    Serial.print("1 "); Serial.println(EEPROM.get(235, holding8));
+    Serial.print("2 "); Serial.print(EEPROM.get(129, holding4)); Serial.print("\t");
+    Serial.print("3 "); Serial.println(EEPROM.get(140, holding5));
+    Serial.print("4 "); Serial.print(EEPROM.get(278, holding9)); Serial.print("\t \t");
+    Serial.print("5 "); Serial.println(EEPROM.get(336, holding11));
+    Serial.print("6 "); Serial.print(EEPROM.get(306, holding10)); Serial.print("\t \t");
+    Serial.print("7 "); Serial.println(EEPROM.get(272, holding9));
+    Serial.print("8 "); Serial.print(EEPROM.get(301, holding10)); Serial.print("\t \t");
+    Serial.print("9 "); Serial.println(EEPROM.get(266, holding9));
+    /*choose third attack skill or element
+    0 nothing     1 normal
+    2 persuasion  3 deception
+    4 earth       5 air
+    6 fire        7 water
+    8 dark        9 light*/
+    serialCounter ++;
     break;
 
     case 15:
-    attack3effect = Serial.read() - 48;
-
-    Serial.println();
-    Serial.print("soak="); Serial.print(soak);
-    Serial.print(" attack="); Serial.print(attack);
-    Serial.print(" damage="); Serial.print(damage);
-    Serial.print(" mitigate="); Serial.println(mitigate);
-    Serial.print("light="); Serial.print(light);
-    Serial.print(" dark="); Serial.print(dark);
-    Serial.print(" fire="); Serial.print(fire);
-    Serial.print(" water="); Serial.print(water);
-    Serial.print(" earth="); Serial.print(earth);
-    Serial.print(" air="); Serial.println(air);
-    Serial.println(); Serial.println("attack 1");
-    Serial.print("skill/element="); Serial.println(attack1skillElement);
-    Serial.print("effect="); Serial.println(attack1effect);
-    Serial.println(); Serial.println("attack 2");
-    Serial.print("skill/element="); Serial.println(attack2skillElement);
-    Serial.print("effect="); Serial.println(attack2effect);
-    Serial.println(); Serial.println("attack 3");
-    Serial.print("skill/element="); Serial.println(attack3skillElement);
-    Serial.print("effect="); Serial.println(attack3effect);
-
-    Serial.println();
-    Serial.println("Save?  Send 1 for yes or 0 for no.");
-    counter ++;
+    attack3skillElement = holder - 48;
+    Serial.println(attack3skillElement);
+    Serial.print(EEPROM.get(193, holding8)); Serial.print(" ");
+    Serial.print(EEPROM.get(248, holding9)); Serial.print(" "); 
+    Serial.println(EEPROM.get(228, holding8));
+    Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
+    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("2 "); Serial.print(EEPROM.get(311, holding10)); Serial.print("\t \t");
+    Serial.print("3 "); Serial.println(EEPROM.get(53, holding2));
+    Serial.print("4 "); Serial.print(EEPROM.get(316, holding10)); Serial.print("\t \t");
+    Serial.print("5 "); Serial.println(EEPROM.get(284, holding9));
+    Serial.print("6 "); Serial.print(EEPROM.get(321, holding10)); Serial.print("\t \t");
+    Serial.print("7 "); Serial.println(EEPROM.get(221, holding8));
+    Serial.print("8 "); Serial.print(EEPROM.get(168, holding6)); Serial.print("\t");
+    Serial.print("9 "); Serial.println(EEPROM.get(326, holding10)); 
+    /*choose third effect
+    0 nothing     1 fast
+    2 heal        3 damage over time
+    4 slow        5 blind
+    6 stun        7 enrage
+    8 accurate    9 cure*/
+    serialCounter ++;
     break;
 
     case 16:
-    textBuffer = (Serial.read() - 48);
-    if(textBuffer == 1){
-      Serial.println("Saving character.");
-      EEPROM.write(0, soak);
-      EEPROM.write(1, attack);
-      EEPROM.write(2, damage);
-      EEPROM.write(3, mitigate);
-      EEPROM.write(4, light);
-      EEPROM.write(5, dark);
-      EEPROM.write(6, fire);
-      EEPROM.write(7, water);
-      EEPROM.write(8, earth);
-      EEPROM.write(9, air);
-      EEPROM.write(10, attack1skillElement);
-      EEPROM.write(11, attack1effect);
-      EEPROM.write(12, attack2skillElement);
-      EEPROM.write(13, attack2effect);
-      EEPROM.write(14, attack3skillElement);
-      EEPROM.write(15, attack3effect);
-      Serial.println("Saved.");      
+    attack3effect = holder - 48;
+    Serial.println(attack3effect);
+    Serial.println();
+    Serial.println(EEPROM.get(254, holding9));
+    Serial.print(EEPROM.get(331, holding10)); Serial.print(" "); Serial.print(soak); Serial.print("\t \t");
+    Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");  Serial.println(attack);
+    Serial.print(EEPROM.get(214, holding8)); Serial.print(" "); Serial.print(damage); Serial.print("\t");
+    Serial.print(EEPROM.get(159, holding6)); Serial.print(" "); Serial.println(mitigate);
+    /*save?
+     soak [soak]     attack [attack]
+     damage [damage] mitigate [mitigate]*/
+     
+    
+    
+    if(light == 1){
+      Serial.print(EEPROM.get(266, holding9)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4)); 
+      //light resistance
     }
-
-    else{
-      Serial.println("Current stats,");
-      Serial.println("Send any character to re-input.");
+    if(dark == 1){
+      Serial.print(EEPROM.get(301, holding10)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //dark resistance
+    }
+    if(fire == 1){
+      Serial.print(EEPROM.get(306, holding10)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //fire resistance
+    }
+    if(water == 1){
+      Serial.print(EEPROM.get(272, holding9)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //water resistance
+    }
+    if(earth == 1){
+      Serial.print(EEPROM.get(278, holding9)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //earth resistance
+    }
+    if(air == 1){
+      Serial.print(EEPROM.get(336, holding11)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //air resistance
     }
 
     Serial.println();
-    Serial.print("soak="); Serial.print(EEPROM.read(0));
-    Serial.print(" attack="); Serial.print(EEPROM.read(1));
-    Serial.print(" damage="); Serial.print(EEPROM.read(2));
-    Serial.print(" mitigate="); Serial.println(EEPROM.read(3));
-    Serial.print("light="); Serial.print(EEPROM.read(4));
-    Serial.print(" dark="); Serial.print(EEPROM.read(5));
-    Serial.print(" fire="); Serial.print(EEPROM.read(6));
-    Serial.print(" water="); Serial.print(EEPROM.read(7));
-    Serial.print(" earth="); Serial.print(EEPROM.read(8));
-    Serial.print(" air="); Serial.println(EEPROM.read(9));
-    Serial.println(); Serial.println("attack 1");
-    Serial.print("skill/element="); Serial.println(EEPROM.read(10));
-    Serial.print("effect="); Serial.println(EEPROM.read(11));
-    Serial.println(); Serial.println("attack 2");
-    Serial.print("skill/element="); Serial.println(EEPROM.read(12));
-    Serial.print("effect="); Serial.println(EEPROM.read(13));
-    Serial.println(); Serial.println("attack 3");
-    Serial.print("skill/element="); Serial.println(EEPROM.read(14));
-    Serial.print("effect="); Serial.println(EEPROM.read(15));
+    Serial.print(EEPROM.get(242, holding9)); Serial.print(" ");
+    Serial.println(EEPROM.get(207, holding8));
+    //first attack
+    attackWords(attack1skillElement, attack1effect);
+    Serial.print(EEPROM.get(200, holding8)); Serial.print(" ");
+    Serial.println(EEPROM.get(207, holding8));
+    //second attack
+    attackWords(attack2skillElement, attack2effect);
+    Serial.print(EEPROM.get(248, holding9)); Serial.print(" ");
+    Serial.println(EEPROM.get(207, holding8));
+    //third attack
+    attackWords(attack3skillElement, attack3effect);
 
-    counter = 0;
-    break;   
-  }*/
+    Serial.println(EEPROM.get(16, holding1));
+    //1 for yes, 0 for no
+    serialCounter ++;
+    break;
+    
+
+    case 17:
+    if(holder == 49){
+      characterSave();
+      Serial.println(EEPROM.get(260, holding9));
+      //saved
+      characterVerify();
+    }
+    else{
+      characterVerify();
+      Serial.print(EEPROM.get(36, holding2)); Serial.print(" ");
+      Serial.println(EEPROM.get(70, holding2));
+      //send anything to change character
+    }
+    serialCounter = 0;
+    break;
+  }
+}
+
+void attackWords(int skillElement, int effect){
+  if(skillElement == 0){
+    Serial.print(EEPROM.get(177, holding7)); Serial.print(" ");
+    //nothing
+  }
+  else if(skillElement == 1){
+    Serial.print(EEPROM.get(235, holding8)); Serial.print(" ");
+    //normal
+  }
+  else if(skillElement == 2){
+    Serial.print(EEPROM.get(129, holding4)); Serial.print(" ");
+    //persuasion
+  }
+  else if(skillElement == 3){
+    Serial.print(EEPROM.get(140, holding5)); Serial.print(" ");
+    //deception
+  }
+  else if(skillElement == 4){
+    Serial.print(EEPROM.get(278, holding9)); Serial.print(" ");
+    //earth
+  }
+  else if(skillElement == 5){
+    Serial.print(EEPROM.get(336, holding11)); Serial.print(" ");
+    //air
+  }
+  else if(skillElement == 6){
+    Serial.print(EEPROM.get(306, holding10)); Serial.print(" ");
+    //fire
+  }
+  else if(skillElement == 7){
+    Serial.print(EEPROM.get(272, holding9)); Serial.print(" ");
+    //water
+  }
+  else if(skillElement == 8){
+    Serial.print(EEPROM.get(301, holding10)); Serial.print(" ");
+    //dark
+  }
+  else if(skillElement == 9){
+    Serial.print(EEPROM.get(226, holding9)); Serial.print(" ");
+    //light
+  }
+
+  if(effect == 0){
+    Serial.println(EEPROM.get(177, holding7));
+    //nothing
+  }
+  else if(effect == 1){
+    Serial.println(EEPROM.get(296, holding10));
+    //fast
+  }
+  else if(effect == 2){
+    Serial.println(EEPROM.get(311, holding10));
+    //heal
+  }
+  else if(effect == 3){
+    Serial.println(EEPROM.get(53, holding2));
+    //damage over time
+  }
+  else if(effect == 4){
+    Serial.println(EEPROM.get(316, holding10));
+    //slow
+  }
+  else if(effect == 5){
+    Serial.println(EEPROM.get(284, holding9));
+    //blind
+  }
+  else if(effect == 6){
+    Serial.println(EEPROM.get(10, holding10));
+    //stun
+  }
+  else if(effect == 7){
+    Serial.println(EEPROM.get(221, holding8));
+    //enrage
+  }
+  else if(effect == 8){
+    Serial.println(EEPROM.get(168, holding6));
+    //accurate
+  }
+  else if(effect == 9){
+    Serial.println(EEPROM.get(326, holding10));
+    //cure
+  }
+}
+
+int characterSave(){
+  EEPROM.update(0, soak);
+  EEPROM.update(1, attack);
+  EEPROM.update(2, damage);
+  EEPROM.update(3, mitigate);
+  EEPROM.update(4, light);
+  EEPROM.update(5, dark);
+  EEPROM.update(6, fire);
+  EEPROM.update(7, water);
+  EEPROM.update(8, water);
+  EEPROM.update(9, earth);
+  EEPROM.update(10, attack1skillElement);
+  EEPROM.update(11, attack1effect);
+  EEPROM.update(12, attack2skillElement);
+  EEPROM.update(13, attack2effect);
+  EEPROM.update(14, attack3skillElement);
+  EEPROM.update(15, attack3effect);
+}
+
+int characterVerify(){
+  Serial.print(EEPROM.get(331, holding10)); Serial.print(" "); Serial.print(EEPROM.read(0)); 
+  Serial.print("\t \t");
+  Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");  Serial.println(EEPROM.read(1));
+  Serial.print(EEPROM.get(214, holding8)); Serial.print(" "); Serial.print(EEPROM.read(2)); 
+  Serial.print("\t");
+  Serial.print(EEPROM.get(159, holding6)); Serial.print(" "); Serial.println(EEPROM.read(3));
+  //soak [soak]     attack [attack]
+  //damage [damage] mitigate [mitigate]*/
+
+   if(EEPROM.read(4) == 1){
+      Serial.print(EEPROM.get(266, holding9)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4)); 
+      //light resistance
+    }
+    if(EEPROM.read(5) == 1){
+      Serial.print(EEPROM.get(301, holding10)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //dark resistance
+    }
+    if(EEPROM.read(6) == 1){
+      Serial.print(EEPROM.get(306, holding10)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //fire resistance
+    }
+    if(EEPROM.read(7) == 1){
+      Serial.print(EEPROM.get(272, holding9)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //water resistance
+    }
+    if(EEPROM.read(8) == 1){
+      Serial.print(EEPROM.get(278, holding9)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //earth resistance
+    }
+    if(EEPROM.read(9) == 1){
+      Serial.print(EEPROM.get(336, holding11)); Serial.print(" ");
+      Serial.println(EEPROM.get(118, holding4));
+      //air resistance
+    }
+
+    Serial.println();
+    Serial.print(EEPROM.get(242, holding9)); Serial.print(" ");
+    Serial.println(EEPROM.get(207, holding8));
+    //first attack
+    attackWords(EEPROM.read(10), EEPROM.read(11));
+    Serial.print(EEPROM.get(200, holding8)); Serial.print(" ");
+    Serial.println(EEPROM.get(207, holding8));
+    //second attack
+    attackWords(EEPROM.read(12), EEPROM.read(13));
+    Serial.print(EEPROM.get(248, holding9)); Serial.print(" ");
+    Serial.println(EEPROM.get(207, holding8));
+    //third attack
+    attackWords(EEPROM.read(14), EEPROM.read(15));
 }
