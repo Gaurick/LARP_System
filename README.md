@@ -157,13 +157,13 @@ First pin to ground rail.
 Pin on same side as the first pin to brown stripe ethernet wire.
 
 ** To Do **
-check the ir led's range, setup transistor and tripple ir led's if it's too short with one.
+have ir range, need to create bread board layouts and explanations for the three options.
 
 put in damageWait timer to limit damage received?
 set setup to check eeprom for values and set them to defaults if they're weird or completly wrong (factory value was 255 so anything over 9?)
-setup a way to get character stat input working, either through serial or a separate unit connected to the system.
 update to IRLib2, since the original is depreciated.
 get fastAttack to be fast, not infinite...
+double check timing for debuffs and that there are no unforseen interactions.
 
 add in magic stuff (steal/mod from casting jacket thing elsewhere in my git account.)
 put in 2 separate buzzers.
