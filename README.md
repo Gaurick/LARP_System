@@ -158,12 +158,18 @@ Pin on same side as the first pin to brown stripe ethernet wire.
 
 ** To Do **
 have ir range, need to create bread board layouts and explanations for the three options.
+make this look less like crap.
+put in a damage buzzer.
+put in attackWait for each attack and give each a unique buzz.
+put counter back in for global timing.
+make debuff lights flash with hp lights.
+get slow to slow, not lockout.
+switch fast and accurate attacks with deception and persuasion.
 
-put in damageWait timer to limit damage received?
+put in damageWait timer to limit damage/debuff received?
 set setup to check eeprom for values and set them to defaults if they're weird or completly wrong (factory value was 255 so anything over 9?)
 update to IRLib2, since the original is depreciated.
-get fastAttack to be fast, not infinite...
-double check timing for debuffs and that there are no unforseen interactions.
+
 
 add in magic stuff (steal/mod from casting jacket thing elsewhere in my git account.)
 put in 2 separate buzzers.
