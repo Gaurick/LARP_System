@@ -30,7 +30,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, 6);
 //initializes the neopixel strip object.
 
 //character stats.
-byte soak = EEPROM.read(0);
+int soak = EEPROM.read(0);
 //hitpoints for the "character".
 byte attack = EEPROM.read(1);
 //stat for attack value.
@@ -58,19 +58,16 @@ byte attack3skillElement = EEPROM.read(14);
 byte attack3effect = EEPROM.read(15);
 //variables for the 3 attacks ability, element, effect used.
 
-byte deception = 0;
-byte persuasion = 0;
-byte dot = 0;
-byte blind = 0;
-byte slow = 0;
-byte stun = 0;
-byte enrage = 0;
-byte attackWait = 0;
+int deception = 0;
+int persuasion = 0;
+int dot = 0;
+int blind = 0;
+int slow = 0;
+int stun = 0;
+int enrage = 0;
+int attackWait = 0;
 //placeholders for various effects that aren't just hurting you.
-
-int counter = 0;
-//counter to count.  
-//used to not delay all the time, but pass time.
+  
 int holder = 0;
 //buffer variable to hold inputs for setting the character's stats.
 int serialCounter = 0;
@@ -118,13 +115,12 @@ void loop(){
   //did the IR receiver hear that?
   if (My_Receiver.GetResults(&My_Decoder)){
     My_Decoder.decode();
-    if(My_Decoder.decode_type== RC5){
+    if(My_Decoder.decode_type== NEC){
       //is the signal protocol correct?
 
       Serial.print("IRCode="); Serial.println(My_Decoder.value);
 
       sort();
-      counter = 0;
       //gets the attack categories to attack the character.
     }
     My_Receiver.resume();
@@ -159,19 +155,17 @@ void loop(){
       myAttack(damage, attack, attack3skillElement, attack3effect);
     }
   }
-  if(counter == 500){
-    counter = 0;
-    delay(10);
-  }
-  else{
-    counter ++;
-    delay(10);
-  }
 }
 
 void show(){
+  if(soak <= 0){
+    for(byte u = 0; u < 8; u ++){
+      strip.setPixelColor(u, 0, 0, 0);
+      strip.setBrightness(64);
+    }
+  }
   //if you're decieved, show blue health until you're no longer decieved.
-  if(deception > 0){
+  else if(deception > 0){
     for(byte w = 0; w < soak; w++){
       strip.setPixelColor(w, 0, 0, 255);
       strip.setBrightness(64);
@@ -246,25 +240,28 @@ void myAttack(int a, int b, byte c, byte d){
     c = c * 10;
     int e = a + b + c + d;
 
-    My_Sender.send(RC5, e, 14);
+    My_Sender.send(NEC, e, 14);
     Serial.println(e);
-    if(c > 1){
+    if(c > 0){
+      if(c == 1){
+        attackWait = attackWait + 50;
+      }
       if(c < 4){
-        attackWait = attackWait + 1;
+        attackWait = attackWait + 100;
       }
 
       else{
-        attackWait = attackWait + 2;
+        attackWait = attackWait + 200;
       }
     }
 
     if(d > 1){
       if(d <7){
-        attackWait = attackWait + 1; 
+        attackWait = attackWait + 100; 
       }
       
       else{
-        attackWait = attackWait + 2;
+        attackWait = attackWait + 200;
       }
     }
     delay(250);
@@ -274,99 +271,202 @@ void myAttack(int a, int b, byte c, byte d){
 }
 
 void effects(){
-  if(deception > 0){
-    //deception mechanics sets damage and attack values to zero for the duration.
-    attack = 0;
-    damage = 0;
-    deception --;
-  }
-      
-  if(persuasion > 0){
-    //persuasion cancels out the character's damage for the duration.
-    damage = 0;
-    persuasion --;
-  }
-    
-  if(blind > 0){
-    //blinded!
-    attack = 0;
-    blind = blind - 1;
-  }
+  for(byte v = 0; v <= 8; v ++){
+    switch(v){
+      case 0:
+      //deception
+      if(deception > 0){
+        if(deception == 1){
+          attack = EEPROM.read(1);
+          damage = EEPROM.read(2);
+          deception = 0;
+          Serial.print("attack="); Serial.print(attack);
+          Serial.print(" damage="); Serial.println(damage);
+          Serial.println("deception end");
+        }
 
-  if(stun > 0){
-    //stunned!
-    mitigate = 0;
-    stun = stun - 1;
-  }
-    
-  if(dot > 0){
-    if(counter == 500){
-      //DoT damage to hurt over time.
-      soak = soak - 1;
-      dot = dot - 1;
-    }
-  }
-  
-  if(slow > 0){
-    if(counter == 0){
-      //slooooow.
-      if(attackWait > 0){
-        attackWait = attackWait + 1;
-      } 
-      slow = slow - 1;
-    }
-  }
-  
-  if(enrage > 0){
-    if(counter == 0){
+        else{
+          Serial.print("deception="); Serial.println(deception);
+          attack = 0;
+          damage = 0;
+          deception --;
+          Serial.print("attack="); Serial.print(attack);
+          Serial.print(" damage="); Serial.println(damage);
+        }
+      }
+      break;
+
+      case 2:
+      //persuasion.
+      if(persuasion > 0){
+        if(persuasion == 1){
+          damage = EEPROM.read(2);
+          persuasion = 0;
+          Serial.print("damage="); Serial.println(damage);
+          Serial.println("persuasion end");
+        }
+
+        else{
+          Serial.print("persuasion="); Serial.println(persuasion);
+          damage = 0;
+          persuasion --;
+          Serial.print("damage="); Serial.println(damage);
+        }
+      }
+      break;
+
+      case 3:
+      //blind.
+      if(blind > 0){
+        if(blind == 1){
+          attack = EEPROM.read(1);
+          blind = 0;
+          Serial.print("attack="); Serial.println(attack);
+          Serial.println("blind end");
+        }
+
+        else{
+          Serial.print("blind="); Serial.println(blind);
+          attack = 0;
+          blind --;
+          Serial.print("attack="); Serial.println(attack);
+        }
+      }
+      break;
+
+      case 4:
+      //stun.
+      if(stun > 0){
+        if(stun == 1){
+          mitigate = EEPROM.read(3);
+          stun = 0;
+          Serial.print("mitigate="); Serial.println(mitigate);
+          Serial.println("stun end"); 
+        }
+
+        else{
+          Serial.print("stun="); Serial.println(stun);
+          mitigate = 0;
+          stun --;
+          Serial.print("mitigate="); Serial.println(mitigate);
+        }
+      }
+      break;
+
+      case 5:
+      //dot.
+      if(dot > 0){
+        if(((dot / 10)% 10) == 0){
+          //if the dot counter is at x0x.
+          if((dot % 10) == 1){
+            //if the dot counter is at x01, hurt the character.
+            soak --;
+            Serial.print("soak="); Serial.println(soak);
+            Serial.print("dot="); Serial.println(dot);
+          }
+          Serial.print("dot="); Serial.println(dot);
+          dot --;
+        }
+
+        if(((dot / 10)% 10) == 5){
+          //if the dot counter is at x5x.
+          if((dot % 10) == 1){
+            //if the dot counter is at x51, hurt the character.
+            soak --;
+            Serial.print("soak="); Serial.println(soak);
+            Serial.print("dot="); Serial.println(dot);
+          }
+          Serial.print("dot="); Serial.println(dot);
+          dot --;
+        }
+
+        else{
+          Serial.print("dot="); Serial.println(dot);
+          dot --;
+        }
+      }
+      break;
+
+      case 6:
+      //sloooow.
+      if(slow > 0){
+        if(((slow / 10)% 10) == 0){
+          //if the slow counter is at x0x.
+          if((slow % 10) == 1){
+            //if the slow counter is at x01, delay the character's attacks.
+            if(attackWait > 0){
+              attackWait = attackWait + 10;
+              Serial.println("AW"); Serial.print(attackWait);
+            }
+            Serial.print("slow="); Serial.println(slow);
+          }
+          Serial.print("slow="); Serial.println(slow);
+          slow --;
+        }
+
+        if(((slow / 10)% 10) == 5){
+          //if the slow counter is at x5x.
+          if((slow % 10) == 1){
+            //if the dot counter is at x51, delay the character's attacks.
+            if(attackWait > 0){
+              attackWait = attackWait + 10;
+              Serial.println("AW"); Serial.print(attackWait);
+            }
+            Serial.print("slow="); Serial.println(slow);
+          }
+          Serial.print("slow="); Serial.println(slow);
+          slow --;
+        }
+
+        else{
+          Serial.print("slow="); Serial.println(slow);
+          slow --;
+        }
+      }
+      break;
+
+      case 7:
       //full of rage!!!1!!
-      damage = damage + enrage;
-      enrage = enrage - 1;
-      soak = soak - enrage;
-    }
-  }
-  
-  if(attackWait > 0){
-    if(counter == 250){
-      //delay for limiting the rate of attacks.
-      attackWait = attackWait - 1;
-      if(attackWait == 0){
-        digitalWrite(13, HIGH);
-        delay(250);
-        digitalWrite(13, LOW);
+      if(enrage > 0){
+        if(enrage == 1){
+          damage = EEPROM.read(2);
+          soak = soak - damage;
+          enrage --;
+          Serial.print("damage="); Serial.println(damage);
+          Serial.println("enrage end");
+        }
+
+        else{
+          Serial.print("enrage="); Serial.print(enrage);
+          damage = EEPROM.read(2) * 2;
+          enrage --;
+          Serial.print(" damage="); Serial.println(damage);
+        }
       }
-    }
-  }
-  
-  if(deception == 0){
-    if(blind == 0){
-      attack = EEPROM.read(1);
-    }
-  }
-  
-  if(deception == 0){
-    if(persuasion == 0){
-      if(enrage == 0){
-        damage = EEPROM.read(2);
+      break;
+
+      case 8:
+      //attack limiter (attackWait).
+      if(attackWait > 0){
+        Serial.print("attackWait="); Serial.println(attackWait);
+        attackWait --;
       }
+      break;    
     }
   }
 
-  if(stun == 0){
-    mitigate = EEPROM.read(3);
-  }
-    
   show();
+  delay(100);
 }
 
 void sort(){
-  byte foeDamage = ((My_Decoder.value / 1000)% 10);
-  byte foeAttack = ((My_Decoder.value / 100)% 10);
+  int foeDamage = ((My_Decoder.value / 1000)% 10);
+  int foeAttack = ((My_Decoder.value / 100)% 10);
   byte skillElement = ((My_Decoder.value / 10) %10);
   byte effect = (My_Decoder.value %10);
   //sort the signal received into the categories to do things.
 
-  if(foeDamage == 9){
+   if(foeDamage == 9){
     if(foeAttack == 9){
       if(skillElement == 9){
         if(effect == 9){
@@ -381,156 +481,176 @@ void sort(){
           water = 0;
           earth = 0;
           air = 0;
+          Serial.print("gm killed");
         }
       }
     }
   }
 
-  if(skillElement > 0){
-    if(skillElement == 1){
-      //normal attack.
-      if((foeAttack) >= mitigate){
-      }
-      else{
-        foeDamage = 0;
-      }
-    }
+  switch(skillElement){
+    case 0:
+    //nothing at all.
+    break;
 
-    if(skillElement == 2){
-      //persuade.
-      persuasion = (foeDamage + persuasion) * 500;
+    case 1:
+    //normal attack.
+    if(foeAttack <= mitigate){
+      //attack misses.
       foeDamage = 0;
-      //doesn't even hurt.
+    }
+    break;
+
+    case 2:
+    //persuade.
+    persuasion = (foeDamage * 50) + persuasion;
+    foeDamage = 0;
+    //doesn't even hurt.
+    break;
+
+    case 3:
+    //deception.
+    //the deception skill used to deceive you.
+    deception = (foeDamage * 50) + deception;
+    foeDamage = 0;
+    //deception only hurts your feelings.
+    break;
+
+    case 4:
+    //earth.
+    if(earth == 1){
+      //earth resistance yes.
+      foeDamage = foeDamage / 2;
+    }
+    break;
+
+    case 5:
+    //air.
+    if(air == 1){
+      //air resistance is go.
+      foeDamage = foeDamage / 2;
+    }
+    break;
+
+    case 6:
+    //fire.
+    if(fire == 1){
+      //resist the fire.
+      foeDamage = foeDamage / 2;
+    }
+    break;
+
+    case 7:
+    //water.
+    if(water == 1){
+     //water resisted.
+     foeDamage = foeDamage / 2;
+    }
+    break;
+
+    case 8:
+    //dark.
+    if(dark == 1){
+     //resisting the darkness.
+     foeDamage = foeDamage / 2;
     }
 
-    if(skillElement == 3){
-      //deception.
-      //the deception skill used to deceive you.
-      deception = (foeDamage + deception) * 500;
-      foeDamage = 0;
-      //deception only hurts your feelings.
-    }
-
-    if(skillElement == 4){
-      //earth.
-      if(earth == 1){
-        foeDamage = foeDamage / 2;
-      }
-    }
-
-    if(skillElement == 5){
-      //air.
-      if(air == 1){
-        foeDamage = foeDamage / 2;
-      }
-    }
-
-    if(skillElement == 6){
-      //fire.
-      if(fire == 1){
-        foeDamage = foeDamage / 2;
-      }
-    }
-
-    if(skillElement == 7){
-      //water.
-      if(water == 1){
-        foeDamage = foeDamage / 2;
-      }
-    }
-
-    if(skillElement == 8){
-      //dark.
-      if(dark == 1){
-        foeDamage = foeDamage / 2;
-      }
-    }
-
-    if(skillElement == 9){
-      //light.
-      if(light == 1){
-        foeDamage = foeDamage / 2;
-      }
-    }
+   case 9:
+   //light.
+   if(light == 1){
+    foeDamage = foeDamage / 2;
+   }
   }
 
-  if(effect > 0){
-    if(effect == 1){
-      //fast attack.
-      if((foeAttack - 1) >= mitigate){
-      }
-      else{
-        foeDamage = 0;
-      }
+  switch(effect){
+    case 0:
+    //even more nothing.
+    if(skillElement == 0){
+      foeDamage = 0;
+    }
+    break;
+
+    case 1:
+    //fast attack.
+    if((foeAttack - 1) <= mitigate){
+      //attack misses.
+      foeDamage = 0;
+    }
+    break;
+
+    case 2:
+    //heal.
+    if((soak + foeDamage) > EEPROM.read(0)){
+      soak = EEPROM.read(0);
     }
 
-    if(effect == 2){
-      //heal.
-      //instead of being attacked you're healed.
+    else{
       soak = soak + foeDamage;
+    }
+    
+    foeDamage = 0;
+    break;
+
+    case 3:
+    //dot.
+    dot = (foeDamage * 50) + dot;
+    foeDamage = 0;
+    //damage happens over time, not now.
+    break;
+
+    case 4:
+    //slow.
+    slow = (foeDamage * 50) + slow;
+    foeDamage = 0;
+    //doesn't hurt as much, makes you slooooow.
+    break;
+
+    case 5:
+    //blind.
+    //I CAN'T SEE!
+    blind = (foeDamage * 50) + blind;
+    foeDamage = 0;
+    //concentrate on blinding, not hurting.
+    break;
+
+    case 6:
+    //stun.
+    stun = (foeDamage * 50) + stun;
+    foeDamage = 0;
+    //stun, not injure.
+    break;
+
+    case 7:
+    //ENRAGE!!!!111!11
+    enrage = (foeDamage * 50) + enrage;
+    foeDamage = 0;
+    //makes you angry not hurty.
+    break;
+
+    case 8:
+    //accurate attack.
+    if((foeAttack + 2) <= mitigate){
+      //accurate, but still misses.
       foeDamage = 0;
-      //feels lovely.
     }
+    break;
 
-    if(effect == 3){
-      //DoT.
-      //damage over time (DoT).
-      dot = foeDamage + dot;
-      foeDamage = 0;
-      //damage happens over time, not right now.
-    }
-
-    if(effect == 4){
-      //slow.
-       //reduces your speed.
-      slow = foeDamage + slow;
-      foeDamage = foeDamage / 2;
-      //doesn't hurt much, just makes you slooooow.
-    }
-
-    if(effect == 5){
-      //blind.
-      //I CAN'T SEE!
-      blind = (foeDamage + blind) * 500;
-      foeDamage = foeDamage / 2;
-    }
-
-    if(effect == 6){
-      //stun.
-      stun = (foeDamage + stun) * 500;
-      foeDamage = foeDamage / 2;
-    }
-
-    if(effect == 7){
-      //enrage.
-      enrage = foeDamage + enrage;
-      foeDamage = 0;
-    }
-
-    if(effect == 8){
-      //accurate attack.
-      if((foeAttack + 2) >= mitigate){
-      }
-      else{
-        foeDamage = 0;
-      }
-    }
-
-    if(effect == 9){
-      //cure.
-      //remove all current negative effect.
-      foeDamage = 0;
-      dot = 0;
-      deception = 0;
-      persuasion =0;
-      slow = 0;
-      blind = 0;
-      //it's more like being cuddled by puppies than hit with a truck.
-    }
+    case 9:
+    //cure.
+    //removes all current negative effects.
+    dot = 0;
+    deception = 0;
+    persuasion = 0;
+    slow = 0;
+    blind = 0;
+    stun = 0;
+    foeDamage = 0;
+    //it's more like being cuddled by puppies than hit with a truck.
+    break;
   }
-  
+  Serial.print("soak="); Serial.print(soak);
   soak = soak - foeDamage;
   //do the damage to the character after figuring it and any other side effects.
+  Serial.print(" soak="); Serial.println(soak);
   show();
 }
 
@@ -987,8 +1107,8 @@ int characterSave(){
   EEPROM.update(5, dark);
   EEPROM.update(6, fire);
   EEPROM.update(7, water);
-  EEPROM.update(8, water);
-  EEPROM.update(9, earth);
+  EEPROM.update(8, earth);
+  EEPROM.update(9, air);
   EEPROM.update(10, attack1skillElement);
   EEPROM.update(11, attack1effect);
   EEPROM.update(12, attack2skillElement);
