@@ -10,22 +10,22 @@ Soak is how much damage characters can take (HP).
 Mitigate is the attribute to resist normal attacks (armor).
 Attack is how likely a normal attack is to hit.
 Damage is how much you hurt when you do hit.
-Resistances automatically halve damage if you have the resistance to an element that hits you.
+Resistances automatically halve damage if you have the resistance to an element that hits you or reduce the duration of effects by half if you have the resistance.
 Attacks are your 3 attacks that you have.
 
 Effects
-Heal damage is added to character's soak instead of removed from their soak (heals them, doesn't hurt them).
+Heal damage is added to character's soak instead of removed from their soak up to the soak stat.
 Persuasion damage is set to zero for the persuasion duration.
 Deception attack and damage are set to zero for deception duration.
 Elemental attack (earth, air, fire, water, dark, light) bypass mitigate and only check the resistance value.  If resisted then only does half damage.
-Fast Attack attack that doesn't increase the attackWait delay between attacks.  Attack value - 1 vs mitigate.  If "misses" no damage at all.
+Fast Attack attack is a speedier attack but is more prone to miss.  Attack value - 1 vs mitigate.  If "misses" no damage at all.
 Normal Attack for standard attacking.  Attack value vs mitigate.  If "misses" no damage at all.
+Accurate Attack hits more often.  Attack value +2 vs mitigate.  If "misses" no damage at all.
 Dammage Over Time deals the damage one point at a time over a little time instead of all at once.
 Slow increases attackWait time when you attack.
 Blind sets attack to zero.
 Stun sets armor to zero.
-Enrage increases damage to enrage ammount then reduces the bonus slowly until it's back to normal.  Still does damage to you though.
-Accurate Attack hits more often.  Attack value +2 vs mitigate.  If "misses" no damage at all.
+Enrage increases damage to enrage ammount then reduces the bonus slowly until it's back to normal.  Damages you when the duration is over.
 Cure cancels any negative effects on target (DoT, deception, persuasion, slow, and blind).
 
 ** Character Input Value **
@@ -158,20 +158,12 @@ Pin on same side as the first pin to brown stripe ethernet wire.
 
 ** To Do **
 have ir range, need to create bread board layouts and explanations for the three options.
-make this look less like crap.
-put in a damage buzzer.
 put in attackWait for each attack and give each a unique buzz.
-put counter back in for global timing.
-make debuff lights flash with hp lights.
-get slow to slow, not lockout.
-switch fast and accurate attacks with deception and persuasion.
+adjust how effects show up on the lights. (ideal would be flash debuff 1 sec, health 1 sec, other debuff 1 sec, new debuff displays as soon as you get it).
 
-put in damageWait timer to limit damage/debuff received?
 set setup to check eeprom for values and set them to defaults if they're weird or completly wrong (factory value was 255 so anything over 9?)
 update to IRLib2, since the original is depreciated.
-
+write IR code for IRLib2 to prevent remote controller hax.
 
 add in magic stuff (steal/mod from casting jacket thing elsewhere in my git account.)
-put in 2 separate buzzers.
-first in the main body to buzz on receiving an attack.
-second on the attacky thing to buzz when an attack is launched and when the attackWait is finished.
+put in 2 separate buzzers.  first in the main body to buzz on receiving an attack.  second on the attacky thing to buzz when an attack is launched and when the attackWait is finished.
