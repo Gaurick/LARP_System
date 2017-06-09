@@ -72,6 +72,8 @@ int holder = 0;
 //buffer variable to hold inputs for setting the character's stats.
 int serialCounter = 0;
 //variable to keep track of what step character stat set is at.
+int counter = 0;
+//variable to pass time without delay().
 
 char holding1 [20];
 char holding2 [17];
@@ -159,46 +161,13 @@ void loop(){
 
 void show(){
   if(soak <= 0){
+    //if you're dead, no pixels should turn on.
     for(byte u = 0; u < 8; u ++){
       strip.setPixelColor(u, 0, 0, 0);
       strip.setBrightness(64);
     }
   }
-  //if you're decieved, show blue health until you're no longer decieved.
-  else if(deception > 0){
-    for(byte w = 0; w < soak; w++){
-      strip.setPixelColor(w, 0, 0, 255);
-      strip.setBrightness(64);
-    }
-  }
-
-  //if you're persuaded, show purple until you're no longer persuaded.
-  else if(persuasion > 0){
-    for(byte x = 0; x < soak; x++){
-      strip.setPixelColor(x, 255, 0, 255);
-      strip.setBrightness(64);
-    }
-  }
-
-  //if you're blind, then darken the health until you can see again.
-  else if(blind > 0){
-      strip.setBrightness(1);
-  }
-
-  else if(slow > 0){
-    for(byte y = 0; y < soak; y++){
-      strip.setPixelColor(y, 255, 255, 0);
-      strip.setBrightness(64);
-    }
-  }
-
-  else if(enrage > 0){
-    for(byte z = 0; z < soak; z++){
-      strip.setPixelColor(z, 255, 0, 0);
-      strip.setBrightness(64);
-    }
-  }
-
+  
   //if your health isn't too bad, show green.
   else if(soak > 5){
     for(byte a = 0; a < soak; a++){
@@ -227,7 +196,56 @@ void show(){
   for(byte d = soak; d < 8; d++){
     strip.setPixelColor(d, 0, 0, 0);
   }
+
   
+  //if you're decieved, show blue for pixel 3.
+  if(deception > 0){
+    if(soak > 0){
+      strip.setPixelColor(3, 0, 0, 255);
+      strip.setBrightness(64);
+    }
+  }
+
+  //if you're persuaded, show purple on pixel 4 until you're no longer persuaded.
+  if(persuasion > 0){
+    if(soak > 0){
+      strip.setPixelColor(4, 255, 0, 255);
+      strip.setBrightness(64);
+    }
+  }
+
+  //if you're blind, you get a white pixel on 2.
+  if(blind > 0){
+    if(soak > 0){
+      strip.setPixelColor(2, 255, 255, 255);
+      strip.setBrightness(64);    
+    }
+  }
+
+  if(slow > 0){
+    //yellow for slowed on pixel 7.
+    if(soak > 0){
+      strip.setPixelColor(7, 255, 255, 0);
+      strip.setBrightness(64);
+    }
+  }
+
+  if(enrage > 0){
+    //rage red on number 6.
+    if(soak > 0){
+      strip.setPixelColor(6, 255, 0, 0);
+      strip.setBrightness(64);
+    }
+  }
+
+  if(stun > 0){
+    //orange for 5.
+    if(soak > 0){
+      strip.setPixelColor(5, 255, 125, 0);
+      strip.setBrightness(64);
+    }
+  }
+
   strip.show();
   //actually make the colors show up.
 }
@@ -244,19 +262,19 @@ void myAttack(int a, int b, byte c, byte d){
     Serial.println(e);
     if(c > 0){
       if(c == 1){
-        attackWait = attackWait + 50;
+        attackWait = attackWait + 25;
       }
       if(c < 4){
-        attackWait = attackWait + 100;
+        attackWait = attackWait + 50;
       }
 
       else{
-        attackWait = attackWait + 200;
+        attackWait = attackWait + 100;
       }
     }
 
-    if(d > 1){
-      if(d <7){
+    if(d > 0){
+      if(d <6){
         attackWait = attackWait + 100; 
       }
       
@@ -271,7 +289,7 @@ void myAttack(int a, int b, byte c, byte d){
 }
 
 void effects(){
-  for(byte v = 0; v <= 8; v ++){
+  for(byte v = 0; v <= 9; v ++){
     switch(v){
       case 0:
       //deception
@@ -280,18 +298,12 @@ void effects(){
           attack = EEPROM.read(1);
           damage = EEPROM.read(2);
           deception = 0;
-          Serial.print("attack="); Serial.print(attack);
-          Serial.print(" damage="); Serial.println(damage);
-          Serial.println("deception end");
         }
 
         else{
-          Serial.print("deception="); Serial.println(deception);
           attack = 0;
           damage = 0;
           deception --;
-          Serial.print("attack="); Serial.print(attack);
-          Serial.print(" damage="); Serial.println(damage);
         }
       }
       break;
@@ -302,15 +314,11 @@ void effects(){
         if(persuasion == 1){
           damage = EEPROM.read(2);
           persuasion = 0;
-          Serial.print("damage="); Serial.println(damage);
-          Serial.println("persuasion end");
         }
 
         else{
-          Serial.print("persuasion="); Serial.println(persuasion);
           damage = 0;
           persuasion --;
-          Serial.print("damage="); Serial.println(damage);
         }
       }
       break;
@@ -321,15 +329,11 @@ void effects(){
         if(blind == 1){
           attack = EEPROM.read(1);
           blind = 0;
-          Serial.print("attack="); Serial.println(attack);
-          Serial.println("blind end");
         }
 
         else{
-          Serial.print("blind="); Serial.println(blind);
           attack = 0;
           blind --;
-          Serial.print("attack="); Serial.println(attack);
         }
       }
       break;
@@ -340,15 +344,11 @@ void effects(){
         if(stun == 1){
           mitigate = EEPROM.read(3);
           stun = 0;
-          Serial.print("mitigate="); Serial.println(mitigate);
-          Serial.println("stun end"); 
         }
 
         else{
-          Serial.print("stun="); Serial.println(stun);
           mitigate = 0;
           stun --;
-          Serial.print("mitigate="); Serial.println(mitigate);
         }
       }
       break;
@@ -361,10 +361,7 @@ void effects(){
           if((dot % 10) == 1){
             //if the dot counter is at x01, hurt the character.
             soak --;
-            Serial.print("soak="); Serial.println(soak);
-            Serial.print("dot="); Serial.println(dot);
           }
-          Serial.print("dot="); Serial.println(dot);
           dot --;
         }
 
@@ -373,15 +370,11 @@ void effects(){
           if((dot % 10) == 1){
             //if the dot counter is at x51, hurt the character.
             soak --;
-            Serial.print("soak="); Serial.println(soak);
-            Serial.print("dot="); Serial.println(dot);
           }
-          Serial.print("dot="); Serial.println(dot);
           dot --;
         }
 
         else{
-          Serial.print("dot="); Serial.println(dot);
           dot --;
         }
       }
@@ -396,11 +389,8 @@ void effects(){
             //if the slow counter is at x01, delay the character's attacks.
             if(attackWait > 0){
               attackWait = attackWait + 10;
-              Serial.println("AW"); Serial.print(attackWait);
             }
-            Serial.print("slow="); Serial.println(slow);
           }
-          Serial.print("slow="); Serial.println(slow);
           slow --;
         }
 
@@ -410,16 +400,12 @@ void effects(){
             //if the dot counter is at x51, delay the character's attacks.
             if(attackWait > 0){
               attackWait = attackWait + 10;
-              Serial.println("AW"); Serial.print(attackWait);
             }
-            Serial.print("slow="); Serial.println(slow);
           }
-          Serial.print("slow="); Serial.println(slow);
           slow --;
         }
 
         else{
-          Serial.print("slow="); Serial.println(slow);
           slow --;
         }
       }
@@ -432,15 +418,11 @@ void effects(){
           damage = EEPROM.read(2);
           soak = soak - damage;
           enrage --;
-          Serial.print("damage="); Serial.println(damage);
-          Serial.println("enrage end");
         }
 
         else{
-          Serial.print("enrage="); Serial.print(enrage);
           damage = EEPROM.read(2) * 2;
           enrage --;
-          Serial.print(" damage="); Serial.println(damage);
         }
       }
       break;
@@ -448,10 +430,19 @@ void effects(){
       case 8:
       //attack limiter (attackWait).
       if(attackWait > 0){
-        Serial.print("attackWait="); Serial.println(attackWait);
         attackWait --;
       }
-      break;    
+      break;
+
+      case 9:
+      if(counter == 20){
+        counter = 0;
+      }
+
+      else{
+        counter ++;
+      }
+      break;
     }
   }
 
@@ -481,7 +472,6 @@ void sort(){
           water = 0;
           earth = 0;
           air = 0;
-          Serial.print("gm killed");
         }
       }
     }
@@ -493,26 +483,27 @@ void sort(){
     break;
 
     case 1:
+    //fast attack.
+    if((foeAttack - 1) <= mitigate){
+      //attack misses.
+      foeDamage = 0;
+    }    
+    break;
+
+    case 2:
     //normal attack.
     if(foeAttack <= mitigate){
       //attack misses.
       foeDamage = 0;
-    }
-    break;
-
-    case 2:
-    //persuade.
-    persuasion = (foeDamage * 50) + persuasion;
-    foeDamage = 0;
-    //doesn't even hurt.
+    }    
     break;
 
     case 3:
-    //deception.
-    //the deception skill used to deceive you.
-    deception = (foeDamage * 50) + deception;
-    foeDamage = 0;
-    //deception only hurts your feelings.
+    //accurate attack.
+    if((foeAttack + 2) <= mitigate){
+      //accurate, but still misses.
+      foeDamage = 0;
+    }
     break;
 
     case 4:
@@ -561,6 +552,16 @@ void sort(){
    }
   }
 
+  if(foeDamage > 0){
+    digitalWrite(13, HIGH);
+    delay(250);
+    digitalWrite(13, LOW);
+  }
+
+  else{
+    delay(250);
+  }
+
   switch(effect){
     case 0:
     //even more nothing.
@@ -570,11 +571,10 @@ void sort(){
     break;
 
     case 1:
-    //fast attack.
-    if((foeAttack - 1) <= mitigate){
-      //attack misses.
-      foeDamage = 0;
-    }
+    //persuade.
+    persuasion = (foeDamage * 50) + persuasion;
+    foeDamage = 0;
+    //doesn't even hurt.
     break;
 
     case 2:
@@ -627,11 +627,11 @@ void sort(){
     break;
 
     case 8:
-    //accurate attack.
-    if((foeAttack + 2) <= mitigate){
-      //accurate, but still misses.
-      foeDamage = 0;
-    }
+    //deception.
+    //the deception skill used to deceive you.
+    deception = (foeDamage * 50) + deception;
+    foeDamage = 0;
+    //deception only hurts your feelings.
     break;
 
     case 9:
@@ -647,15 +647,14 @@ void sort(){
     //it's more like being cuddled by puppies than hit with a truck.
     break;
   }
-  Serial.print("soak="); Serial.print(soak);
+  
   soak = soak - foeDamage;
   //do the damage to the character after figuring it and any other side effects.
-  Serial.print(" soak="); Serial.println(soak);
   show();
+  Serial.print("soak="); Serial.println(soak);
 }
 
 void gmSet(){
-    //Serial.println(holder);
   switch (serialCounter){
     case 0:
     serialCounter ++;
@@ -785,9 +784,9 @@ void gmSet(){
     Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");
     Serial.println(EEPROM.get(87, holding2));
     Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
-    Serial.print("1 "); Serial.println(EEPROM.get(235, holding8));
-    Serial.print("2 "); Serial.print(EEPROM.get(129, holding4)); Serial.print("\t");
-    Serial.print("3 "); Serial.println(EEPROM.get(140, holding5));
+    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("2 "); Serial.print(EEPROM.get(235, holding8)); Serial.print("\t");
+    Serial.print("3 "); Serial.println(EEPROM.get(168, holding6));
     Serial.print("4 "); Serial.print(EEPROM.get(278, holding9)); Serial.print("\t \t");
     Serial.print("5 "); Serial.println(EEPROM.get(336, holding11));
     Serial.print("6 "); Serial.print(EEPROM.get(306, holding10)); Serial.print("\t \t");
@@ -795,8 +794,8 @@ void gmSet(){
     Serial.print("8 "); Serial.print(EEPROM.get(301, holding10)); Serial.print("\t \t");
     Serial.print("9 "); Serial.println(EEPROM.get(266, holding9));
     /*choose first attack skill or element
-    0 nothing     1 normal
-    2 persuasion  3 deception
+    0 nothing     1 fast
+    2 normal      3 accurate
     4 earth       5 air
     6 fire        7 water
     8 dark        9 light*/
@@ -810,21 +809,21 @@ void gmSet(){
     Serial.print(EEPROM.get(242, holding9)); Serial.print(" "); 
     Serial.println(EEPROM.get(228, holding8));
     Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
-    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("1 "); Serial.println(EEPROM.get(129, holding4));
     Serial.print("2 "); Serial.print(EEPROM.get(311, holding10)); Serial.print("\t \t");
     Serial.print("3 "); Serial.println(EEPROM.get(53, holding2));
     Serial.print("4 "); Serial.print(EEPROM.get(316, holding10)); Serial.print("\t \t");
     Serial.print("5 "); Serial.println(EEPROM.get(284, holding9));
     Serial.print("6 "); Serial.print(EEPROM.get(321, holding10)); Serial.print("\t \t");
     Serial.print("7 "); Serial.println(EEPROM.get(221, holding8));
-    Serial.print("8 "); Serial.print(EEPROM.get(168, holding6)); Serial.print("\t");
+    Serial.print("8 "); Serial.print(EEPROM.get(140, holding5)); Serial.print("\t");
     Serial.print("9 "); Serial.println(EEPROM.get(326, holding10)); 
     /*choose first effect
-    0 nothing     1 fast
+    0 nothing     1 persuade
     2 heal        3 damage over time
     4 slow        5 blind
     6 stun        7 enrage
-    8 accurate    9 cure*/
+    8 deception   9 cure*/
     serialCounter ++;
     break;
 
@@ -836,9 +835,9 @@ void gmSet(){
     Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");
     Serial.println(EEPROM.get(87, holding2));
     Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
-    Serial.print("1 "); Serial.println(EEPROM.get(235, holding8));
-    Serial.print("2 "); Serial.print(EEPROM.get(129, holding4)); Serial.print("\t");
-    Serial.print("3 "); Serial.println(EEPROM.get(140, holding5));
+    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("2 "); Serial.print(EEPROM.get(235, holding8)); Serial.print("\t");
+    Serial.print("3 "); Serial.println(EEPROM.get(168, holding6));
     Serial.print("4 "); Serial.print(EEPROM.get(278, holding9)); Serial.print("\t \t");
     Serial.print("5 "); Serial.println(EEPROM.get(336, holding11));
     Serial.print("6 "); Serial.print(EEPROM.get(306, holding10)); Serial.print("\t \t");
@@ -846,8 +845,8 @@ void gmSet(){
     Serial.print("8 "); Serial.print(EEPROM.get(301, holding10)); Serial.print("\t \t");
     Serial.print("9 "); Serial.println(EEPROM.get(266, holding9));
     /*choose second attack skill or element
-    0 nothing     1 normal
-    2 persuasion  3 deception
+    0 nothing     1 fast
+    2 normal      3 accurate
     4 earth       5 air
     6 fire        7 water
     8 dark        9 light*/
@@ -861,21 +860,21 @@ void gmSet(){
     Serial.print(EEPROM.get(200, holding8)); Serial.print(" "); 
     Serial.println(EEPROM.get(228, holding8));
     Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
-    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("1 "); Serial.println(EEPROM.get(129, holding4));
     Serial.print("2 "); Serial.print(EEPROM.get(311, holding10)); Serial.print("\t \t");
     Serial.print("3 "); Serial.println(EEPROM.get(53, holding2));
     Serial.print("4 "); Serial.print(EEPROM.get(316, holding10)); Serial.print("\t \t");
     Serial.print("5 "); Serial.println(EEPROM.get(284, holding9));
     Serial.print("6 "); Serial.print(EEPROM.get(321, holding10)); Serial.print("\t \t");
     Serial.print("7 "); Serial.println(EEPROM.get(221, holding8));
-    Serial.print("8 "); Serial.print(EEPROM.get(168, holding6)); Serial.print("\t");
+    Serial.print("8 "); Serial.print(EEPROM.get(140, holding5)); Serial.print("\t");
     Serial.print("9 "); Serial.println(EEPROM.get(326, holding10)); 
     /*choose second effect
-    0 nothing     1 fast
+    0 nothing     1 persuade
     2 heal        3 damage over time
     4 slow        5 blind
     6 stun        7 enrage
-    8 accurate    9 cure*/
+    8 deception   9 cure*/
     serialCounter ++;
     break;
 
@@ -887,9 +886,9 @@ void gmSet(){
     Serial.print(EEPROM.get(207, holding8)); Serial.print(" ");
     Serial.println(EEPROM.get(87, holding2));
     Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
-    Serial.print("1 "); Serial.println(EEPROM.get(235, holding8));
-    Serial.print("2 "); Serial.print(EEPROM.get(129, holding4)); Serial.print("\t");
-    Serial.print("3 "); Serial.println(EEPROM.get(140, holding5));
+    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("2 "); Serial.print(EEPROM.get(235, holding8)); Serial.print("\t");
+    Serial.print("3 "); Serial.println(EEPROM.get(168, holding6));
     Serial.print("4 "); Serial.print(EEPROM.get(278, holding9)); Serial.print("\t \t");
     Serial.print("5 "); Serial.println(EEPROM.get(336, holding11));
     Serial.print("6 "); Serial.print(EEPROM.get(306, holding10)); Serial.print("\t \t");
@@ -897,8 +896,8 @@ void gmSet(){
     Serial.print("8 "); Serial.print(EEPROM.get(301, holding10)); Serial.print("\t \t");
     Serial.print("9 "); Serial.println(EEPROM.get(266, holding9));
     /*choose third attack skill or element
-    0 nothing     1 normal
-    2 persuasion  3 deception
+    0 nothing     1 fast
+    2 normal      3 accurate
     4 earth       5 air
     6 fire        7 water
     8 dark        9 light*/
@@ -912,21 +911,21 @@ void gmSet(){
     Serial.print(EEPROM.get(248, holding9)); Serial.print(" "); 
     Serial.println(EEPROM.get(228, holding8));
     Serial.print("0 "); Serial.print(EEPROM.get(177, holding7)); Serial.print("\t");
-    Serial.print("1 "); Serial.println(EEPROM.get(296, holding10));
+    Serial.print("1 "); Serial.println(EEPROM.get(129, holding4));
     Serial.print("2 "); Serial.print(EEPROM.get(311, holding10)); Serial.print("\t \t");
     Serial.print("3 "); Serial.println(EEPROM.get(53, holding2));
     Serial.print("4 "); Serial.print(EEPROM.get(316, holding10)); Serial.print("\t \t");
     Serial.print("5 "); Serial.println(EEPROM.get(284, holding9));
     Serial.print("6 "); Serial.print(EEPROM.get(321, holding10)); Serial.print("\t \t");
     Serial.print("7 "); Serial.println(EEPROM.get(221, holding8));
-    Serial.print("8 "); Serial.print(EEPROM.get(168, holding6)); Serial.print("\t");
+    Serial.print("8 "); Serial.print(EEPROM.get(140, holding5)); Serial.print("\t");
     Serial.print("9 "); Serial.println(EEPROM.get(326, holding10)); 
     /*choose third effect
-    0 nothing     1 fast
+    0 nothing     1 persuade
     2 heal        3 damage over time
     4 slow        5 blind
     6 stun        7 enrage
-    8 accurate    9 cure*/
+    8 deception   9 cure*/
     serialCounter ++;
     break;
 
@@ -1020,16 +1019,16 @@ void attackWords(int skillElement, int effect){
     //nothing
   }
   else if(skillElement == 1){
+    Serial.print(EEPROM.get(296, holding10)); Serial.print(" ");
+    //fast
+  }
+  else if(skillElement == 2){
     Serial.print(EEPROM.get(235, holding8)); Serial.print(" ");
     //normal
   }
-  else if(skillElement == 2){
-    Serial.print(EEPROM.get(129, holding4)); Serial.print(" ");
-    //persuasion
-  }
   else if(skillElement == 3){
-    Serial.print(EEPROM.get(140, holding5)); Serial.print(" ");
-    //deception
+    Serial.print(EEPROM.get(168, holding6)); Serial.print(" ");
+    //accurate
   }
   else if(skillElement == 4){
     Serial.print(EEPROM.get(278, holding9)); Serial.print(" ");
@@ -1061,8 +1060,8 @@ void attackWords(int skillElement, int effect){
     //nothing
   }
   else if(effect == 1){
-    Serial.println(EEPROM.get(296, holding10));
-    //fast
+    Serial.println(EEPROM.get(129, holding4));
+    //persuade
   }
   else if(effect == 2){
     Serial.println(EEPROM.get(311, holding10));
@@ -1081,7 +1080,7 @@ void attackWords(int skillElement, int effect){
     //blind
   }
   else if(effect == 6){
-    Serial.println(EEPROM.get(10, holding10));
+    Serial.println(EEPROM.get(321, holding10));
     //stun
   }
   else if(effect == 7){
@@ -1089,8 +1088,8 @@ void attackWords(int skillElement, int effect){
     //enrage
   }
   else if(effect == 8){
-    Serial.println(EEPROM.get(168, holding6));
-    //accurate
+    Serial.println(EEPROM.get(140, holding5));
+    //deception
   }
   else if(effect == 9){
     Serial.println(EEPROM.get(326, holding10));
