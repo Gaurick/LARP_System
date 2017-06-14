@@ -65,7 +65,9 @@ int blind = 0;
 int slow = 0;
 int stun = 0;
 int enrage = 0;
-int attackWait = 0;
+int attackWait1 = 0;
+int attackWait2 = 0; 
+int attackWait3 = 0;
 //placeholders for various effects that aren't just hurting you.
   
 int holder = 0;
@@ -142,19 +144,19 @@ void loop(){
   if(soak > 0){
     if(attackState == LOW){
       //attack 1 done.
-      myAttack(damage, attack, attack1skillElement, attack1effect);
+      myAttack(damage, attack, attack1skillElement, attack1effect, attackWait1);
     }
     
     attackState = digitalRead(10);
     if(attackState == LOW){
       //attacking with number 2.
-      myAttack(damage, attack, attack2skillElement, attack2effect);
+      myAttack(damage, attack, attack2skillElement, attack2effect, attackWait2);
     }
     
     attackState = digitalRead(12);
     if(attackState == LOW){
       //third attack option choosen.
-      myAttack(damage, attack, attack3skillElement, attack3effect);
+      myAttack(damage, attack, attack3skillElement, attack3effect, attackWait3);
     }
   }
 }
@@ -250,8 +252,8 @@ void show(){
   //actually make the colors show up.
 }
 
-void myAttack(int a, int b, byte c, byte d){
-  if(attackWait == 0){
+void myAttack(int a, int b, byte c, byte d, f){
+  if(f == 0){
     digitalWrite(13, HIGH);
     a = a * 1000;
     b = b * 100;
@@ -262,24 +264,24 @@ void myAttack(int a, int b, byte c, byte d){
     Serial.println(e);
     if(c > 0){
       if(c == 1){
-        attackWait = attackWait + 25;
+        f = f + 25;
       }
       if(c < 4){
-        attackWait = attackWait + 50;
+        f = f + 50;
       }
 
       else{
-        attackWait = attackWait + 100;
+        f = f + 100;
       }
     }
 
     if(d > 0){
       if(d <6){
-        attackWait = attackWait + 100; 
+        f = f + 100; 
       }
       
       else{
-        attackWait = attackWait + 200;
+        f = f + 200;
       }
     }
     delay(250);
