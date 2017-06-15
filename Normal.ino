@@ -291,7 +291,7 @@ void myAttack(int a, int b, byte c, byte d, f){
 }
 
 void effects(){
-  for(byte v = 0; v <= 9; v ++){
+  for(byte v = 0; v <= 11; v ++){
     switch(v){
       case 0:
       //deception
@@ -431,12 +431,26 @@ void effects(){
 
       case 8:
       //attack limiter (attackWait).
-      if(attackWait > 0){
-        attackWait --;
+      if(attackWait1 > 0){
+        attackWait1 --;
+      }
+      break;
+        
+      case 9:
+      //attack limiter (attackWait).
+      if(attackWait2 > 0){
+        attackWait2 --;
+      }
+      break;
+        
+      case 10:
+      //attack limiter (attackWait).
+      if(attackWait3 > 0){
+        attackWait4 --;
       }
       break;
 
-      case 9:
+      case 11:
       if(counter == 20){
         counter = 0;
       }
@@ -445,6 +459,8 @@ void effects(){
         counter ++;
       }
       break;
+        
+      
     }
   }
 
