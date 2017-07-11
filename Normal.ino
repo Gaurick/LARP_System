@@ -143,20 +143,23 @@ void loop(){
   int attackState = digitalRead(9);
   if(soak > 0){
     if(attackState == LOW){
+      Serial.println("1");
       //attack 1 done.
-      myAttack(damage, attack, attack1skillElement, attack1effect, attackWait1);
+      myAttack(damage, attack, attack1skillElement, attack1effect, attackWait1, 1);
     }
     
     attackState = digitalRead(10);
     if(attackState == LOW){
+      Serial.println("2"); 
       //attacking with number 2.
-      myAttack(damage, attack, attack2skillElement, attack2effect, attackWait2);
+      myAttack(damage, attack, attack2skillElement, attack2effect, attackWait2, 2);
     }
     
     attackState = digitalRead(12);
     if(attackState == LOW){
+      Serial.println("3"); 
       //third attack option choosen.
-      myAttack(damage, attack, attack3skillElement, attack3effect, attackWait3);
+      myAttack(damage, attack, attack3skillElement, attack3effect, attackWait3, 2);
     }
   }
 }
@@ -252,7 +255,7 @@ void show(){
   //actually make the colors show up.
 }
 
-void myAttack(int a, int b, byte c, byte d, f){
+void myAttack(int a, int b, byte c, byte d, int f, int g){
   if(f == 0){
     digitalWrite(13, HIGH);
     a = a * 1000;
@@ -283,6 +286,18 @@ void myAttack(int a, int b, byte c, byte d, f){
       else{
         f = f + 200;
       }
+    }
+
+    if(g == 1){
+      attackWait1 = f;
+    }
+
+    else if(g == 2){
+      attackWait2 = f;
+    }
+
+    else if(g == 3){
+      attackWait3 = f;
     }
     delay(250);
     digitalWrite(13, LOW);
@@ -389,8 +404,16 @@ void effects(){
           //if the slow counter is at x0x.
           if((slow % 10) == 1){
             //if the slow counter is at x01, delay the character's attacks.
-            if(attackWait > 0){
-              attackWait = attackWait + 10;
+            if(attackWait1 > 0){
+              attackWait1 = attackWait1 + 10;
+            }
+
+            if(attackWait2 > 0){
+              attackWait2 = attackWait2 + 10;
+            }
+
+            if(attackWait3 > 0){
+              attackWait3 = attackWait3 + 10;
             }
           }
           slow --;
@@ -400,8 +423,16 @@ void effects(){
           //if the slow counter is at x5x.
           if((slow % 10) == 1){
             //if the dot counter is at x51, delay the character's attacks.
-            if(attackWait > 0){
-              attackWait = attackWait + 10;
+            if(attackWait1 > 0){
+              attackWait1 = attackWait1 + 10;
+            }
+
+            if(attackWait2 > 0){
+              attackWait2 = attackWait2 + 10;
+            }
+
+            if(attackWait3 > 0){
+              attackWait3 = attackWait3 + 10;
             }
           }
           slow --;
@@ -433,6 +464,7 @@ void effects(){
       //attack limiter (attackWait).
       if(attackWait1 > 0){
         attackWait1 --;
+        Serial.print("aw1="); Serial.println(attackWait1);
       }
       break;
         
@@ -440,13 +472,15 @@ void effects(){
       //attack limiter (attackWait).
       if(attackWait2 > 0){
         attackWait2 --;
+        Serial.print("aw2="); Serial.println(attackWait2);
       }
       break;
         
       case 10:
       //attack limiter (attackWait).
       if(attackWait3 > 0){
-        attackWait4 --;
+        attackWait3 --;
+        Serial.print("aw3="); Serial.println(attackWait3);
       }
       break;
 
