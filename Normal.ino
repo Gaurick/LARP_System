@@ -143,23 +143,20 @@ void loop(){
   int attackState = digitalRead(9);
   if(soak > 0){
     if(attackState == LOW){
-      Serial.println("1");
       //attack 1 done.
       myAttack(damage, attack, attack1skillElement, attack1effect, attackWait1, 1);
     }
     
     attackState = digitalRead(10);
     if(attackState == LOW){
-      Serial.println("2"); 
       //attacking with number 2.
       myAttack(damage, attack, attack2skillElement, attack2effect, attackWait2, 2);
     }
     
     attackState = digitalRead(12);
     if(attackState == LOW){
-      Serial.println("3"); 
       //third attack option choosen.
-      myAttack(damage, attack, attack3skillElement, attack3effect, attackWait3, 2);
+      myAttack(damage, attack, attack3skillElement, attack3effect, attackWait3, 3);
     }
   }
 }
@@ -257,7 +254,6 @@ void show(){
 
 void myAttack(int a, int b, byte c, byte d, int f, int g){
   if(f == 0){
-    digitalWrite(13, HIGH);
     a = a * 1000;
     b = b * 100;
     c = c * 10;
@@ -299,9 +295,41 @@ void myAttack(int a, int b, byte c, byte d, int f, int g){
     else if(g == 3){
       attackWait3 = f;
     }
-    delay(250);
-    digitalWrite(13, LOW);
+
+    attackBuzz(g);
     My_Receiver.enableIRIn();
+  }
+}
+
+void attackBuzz(int attackNumber){
+  if(attackNumber == 1){
+    digitalWrite(13, HIGH);
+    delay(150);
+    digitalWrite(13, LOW);
+  }
+
+  else if(attackNumber == 2){
+    digitalWrite(13, HIGH);
+    delay(150);
+    digitalWrite(13, LOW);
+    delay(150);
+    digitalWrite(13, HIGH);
+    delay(150);
+    digitalWrite(13, LOW);
+  }
+
+  else if(attackNumber == 3){
+    digitalWrite(13, HIGH);
+    delay(150);
+    digitalWrite(13, LOW);
+    delay(150);
+    digitalWrite(13, HIGH);
+    delay(150);
+    digitalWrite(13, LOW);
+    delay(150);
+    digitalWrite(13, HIGH);
+    delay(150);
+    digitalWrite(13, LOW);
   }
 }
 
@@ -462,25 +490,37 @@ void effects(){
 
       case 8:
       //attack limiter (attackWait).
-      if(attackWait1 > 0){
+      if(attackWait1 == 1){
+        attackBuzz(1);
         attackWait1 --;
-        Serial.print("aw1="); Serial.println(attackWait1);
+      }
+      
+      else if(attackWait1 > 0){
+        attackWait1 --;
       }
       break;
         
       case 9:
       //attack limiter (attackWait).
-      if(attackWait2 > 0){
+      if(attackWait2 == 1){
+        attackBuzz(2);
         attackWait2 --;
-        Serial.print("aw2="); Serial.println(attackWait2);
+      }
+      
+      else if(attackWait2 > 0){
+        attackWait2 --;
       }
       break;
         
       case 10:
       //attack limiter (attackWait).
-      if(attackWait3 > 0){
+      if(attackWait3 == 1){
+        attackBuzz(3);
         attackWait3 --;
-        Serial.print("aw3="); Serial.println(attackWait3);
+      }
+      
+      else if(attackWait3 > 0){
+        attackWait3 --;
       }
       break;
 
